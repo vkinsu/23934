@@ -3,7 +3,7 @@
 #include <time.h>
 
 int main(void) {
-    setenv("TZ", "PST8", 1);
+    setenv("TZ", "America/Los_Angeles", 1);
     time_t now;
     now = time(&now);
     printf("%s", ctime(&now));
