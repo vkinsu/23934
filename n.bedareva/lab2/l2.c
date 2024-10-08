@@ -4,7 +4,7 @@
 #include <stdlib.h>
 extern char *tzname[];
 
-main()
+int main()
 {
      time_t now;
      struct tm *sp;
@@ -25,5 +25,5 @@ main()
          sp->tm_min, 
          tzname[sp->tm_isdst]);
      exit(0);
-     
+     return 0;     
 }
