@@ -56,7 +56,7 @@ void makeIndentationTable() {
         lineTable[countStr].length = strlen(tempStr);
         lineTable[countStr].offset = currentOffset;
 
-        currentOffset += strlen(tempStr) + 1;
+        currentOffset += strlen(tempStr);
         countStr += 1;
     }
     fclose(fin);
