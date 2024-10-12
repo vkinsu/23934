@@ -17,7 +17,7 @@ int main(int argc, char *argv[]) {
 
     while ((option = getopt(argc, argv, options)) != -1) {
         switch (option) {
-            case 'i':
+            case 'i' :
                 uid_t real_uid = getuid();
                 uid_t effective_uid = geteuid();
 
@@ -31,7 +31,7 @@ int main(int argc, char *argv[]) {
                 printf("Real EGID: %u\n", effective_gid);
                 break;
 
-            case 's':
+            case 's' :
                 if (setpgid(0, 0) == -1) {
                     perror("Failed to change process group ID.\n");
                 } else {
@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
                 }
                 break;
 
-            case 'p':
+            case 'p' :
                 pid_t pid = getpid();
                 pid_t ppid = getppid();
                 pid_t pgid = getpgid(pid);
@@ -50,7 +50,7 @@ int main(int argc, char *argv[]) {
 
                 break;
 
-            case 'u':
+            case 'u' :
 
                 if (getrlimit(RLIMIT_FSIZE, &rlp) == 0) {
                     printf("Ulimit value: %lu\n", rlp.rlim_cur);
@@ -59,7 +59,7 @@ int main(int argc, char *argv[]) {
                 }
                 break;
 
-            case 'U':
+            case 'U' :
                 int newUlimit = strtol(optarg, NULL, 10);
                 if (newUlimit <= 0) {
                     perror("Size must be >0. \n");
@@ -80,7 +80,7 @@ int main(int argc, char *argv[]) {
                 }
                 break;
 
-            case 'c':
+            case 'c' :
 
                 if (getrlimit(RLIMIT_CORE, &rlp) == 0) {
                     printf("Size (in byte) of core-file: %lu\n", rlp.rlim_cur);
@@ -89,7 +89,7 @@ int main(int argc, char *argv[]) {
                 }
                 break;
 
-            case 'C':
+            case 'C' :
 
                 if (getrlimit(RLIMIT_CORE, &rlp) == 0) {
                     printf("Size (in byte) of core-file: %lu\n", rlp.rlim_cur);
@@ -110,7 +110,7 @@ int main(int argc, char *argv[]) {
                 }
                 break;
 
-            case 'd':
+            case 'd' :
                 char* cwd = getcwd(NULL, 0);
                 if (cwd == NULL) {
                     perror("getcwd error");
@@ -120,7 +120,7 @@ int main(int argc, char *argv[]) {
                 }
                 break;
 
-            case 'v':
+            case 'v' :
                 char **p;
                 printf("environment variables are:\n");
                 for (p = environ; *p; p++) {
@@ -128,7 +128,7 @@ int main(int argc, char *argv[]) {
                 }
                 break;
 
-            case 'V':
+            case 'V' :
                 if (putenv(optarg) == 0) {
                     printf("Environment variable value is set.\n");
                 } else {
