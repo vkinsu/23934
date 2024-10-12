@@ -35,7 +35,7 @@ lineInfo* makeIndentationTable(char* filename, int* countStrings) {
         lineTable[*countStrings].length = strlen(tempStr);
         lineTable[*countStrings].offset = currentOffset;
 
-        currentOffset += strlen(tempStr) + 1;
+        currentOffset += strlen(tempStr) ;
         *countStrings += 1;
     }
     fclose(fin);
@@ -84,7 +84,7 @@ int main(void) {
     }
     else {
         size_t len = strlen(filename);
-        if (len > 0 && filename[len - 1] == '\n' ||(len > 0 && filename[len - 1] == '\r' || (len > 0 && filename[len - 1] == '\r\n'  ) {
+        if (len > 0 && filename[len - 1] == '\n') {
             filename[len - 1] = '\0';
         }
     }
