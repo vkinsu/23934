@@ -17,7 +17,7 @@ int main(int argc, char *argv[]) {
 
     while ((option = getopt(argc, argv, options)) != -1) {
         switch (option) {
-            case 'i' :
+            case 'i' : {
                 uid_t real_uid = getuid();
                 uid_t effective_uid = geteuid();
 
@@ -30,6 +30,7 @@ int main(int argc, char *argv[]) {
                 printf("Real GID: %u\n", real_gid);
                 printf("Real EGID: %u\n", effective_gid);
                 break;
+            }
 
             case 's' :
                 if (setpgid(0, 0) == -1) {
@@ -39,7 +40,7 @@ int main(int argc, char *argv[]) {
                 }
                 break;
 
-            case 'p' :
+            case 'p' : {
                 pid_t pid = getpid();
                 pid_t ppid = getppid();
                 pid_t pgid = getpgid(pid);
@@ -49,9 +50,9 @@ int main(int argc, char *argv[]) {
                 printf("Current PGID: %d\n", pgid);
 
                 break;
+            }
 
             case 'u' :
-
                 if (getrlimit(RLIMIT_FSIZE, &rlp) == 0) {
                     printf("Ulimit value: %lu\n", rlp.rlim_cur);
                 } else {
@@ -59,7 +60,7 @@ int main(int argc, char *argv[]) {
                 }
                 break;
 
-            case 'U' :
+            case 'U' : {
                 int newUlimit = strtol(optarg, NULL, 10);
                 if (newUlimit <= 0) {
                     perror("Size must be >0. \n");
@@ -79,9 +80,9 @@ int main(int argc, char *argv[]) {
                     printf("Ulimit value is set\n");
                 }
                 break;
+            }
 
             case 'c' :
-
                 if (getrlimit(RLIMIT_CORE, &rlp) == 0) {
                     printf("Size (in byte) of core-file: %lu\n", rlp.rlim_cur);
                 } else {
@@ -89,8 +90,7 @@ int main(int argc, char *argv[]) {
                 }
                 break;
 
-            case 'C' :
-
+            case 'C' : {
                 if (getrlimit(RLIMIT_CORE, &rlp) == 0) {
                     printf("Size (in byte) of core-file: %lu\n", rlp.rlim_cur);
                 } else {
@@ -109,8 +109,9 @@ int main(int argc, char *argv[]) {
                     printf("Core file size changed.\n");
                 }
                 break;
+            }
 
-            case 'd' :
+            case 'd' : {
                 char* cwd = getcwd(NULL, 0);
                 if (cwd == NULL) {
                     perror("getcwd error");
@@ -119,14 +120,16 @@ int main(int argc, char *argv[]) {
                     free(cwd);
                 }
                 break;
+            }
 
-            case 'v' :
+            case 'v' : {
                 char **p;
                 printf("environment variables are:\n");
                 for (p = environ; *p; p++) {
                     printf("%s\n", *p);
                 }
                 break;
+            }
 
             case 'V' :
                 if (putenv(optarg) == 0) {
