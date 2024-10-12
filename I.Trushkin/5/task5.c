@@ -84,7 +84,7 @@ int main(void) {
     }
     else {
         size_t len = strlen(filename);
-        if (len > 0 && filename[len - 1] == '\n') {
+        if (len > 0 && filename[len - 1] == '\n' ||(len > 0 && filename[len - 1] == '\r' || (len > 0 && filename[len - 1] == '\r\n'  ) {
             filename[len - 1] = '\0';
         }
     }
