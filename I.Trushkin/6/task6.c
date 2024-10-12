@@ -4,6 +4,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <signal.h>
 
 #define FILE_NAME_LEN 100
 #define MAX_NUMB_OF_LINES 1000
@@ -14,35 +15,55 @@ typedef struct lineInfo {
     off_t offset;
 } lineInfo;
 
+int countStr = 0;
+lineInfo* lineTable;
+char filename[FILE_NAME_LEN];
 
-lineInfo* makeIndentationTable(char* filename, int* countStrings) {
+
+void TerminatingProgram (int var){
+
+    int fd = open(filename, O_RDONLY);
+
+    for (int i = 0; i<countStr; i++){
+        lseek(fd, lineTable[i - 1].offset, SEEK_SET);
+
+        char tempString[MAX_STR_LEN];
+        read(fd, tempString, lineTable[i - 1].length);
+
+        tempString[lineTable[i - 1].length] = '\0';
+        printf("%s\n\n", tempString);
+    }
+    _Exit (0);
+}
+
+void makeIndentationTable() {
     FILE* fin = fopen(filename, "r");
     if (fin == NULL) {
         perror("failed to open file\n");
-        return NULL;
+        return;
     }
 
-    lineInfo* lineTable = (lineInfo*)malloc(MAX_NUMB_OF_LINES * sizeof(lineInfo));
+    lineTable = (lineInfo*)malloc(MAX_NUMB_OF_LINES * sizeof(lineInfo));
     if (lineTable == NULL) {
         perror("failed to allocate memory\n");
         fclose(fin);
-        return NULL;
+        return;
     }
 
     char tempStr[MAX_STR_LEN];
     off_t currentOffset = 0;
     while (fgets(tempStr, MAX_STR_LEN, fin) != NULL) {
-        lineTable[*countStrings].length = strlen(tempStr);
-        lineTable[*countStrings].offset = currentOffset;
+        lineTable[countStr].length = strlen(tempStr);
+        lineTable[countStr].offset = currentOffset;
 
         currentOffset += strlen(tempStr) + 1;
-        *countStrings += 1;
+        countStr += 1;
     }
     fclose(fin);
-    return lineTable;
+
 }
 
-void printLinesByNumber(char* filename, int countStr, lineInfo* lineTable) {
+void printLinesByNumber() {
     int fd = open(filename, O_RDONLY);
     if (fd == -1) {
         perror("failed to open file\n");
@@ -53,6 +74,8 @@ void printLinesByNumber(char* filename, int countStr, lineInfo* lineTable) {
 
     while (1) {
         printf("Enter line number (0 to exit):\n");
+        signal(SIGALRM, TerminatingProgram);
+        alarm(5);
         scanf("%d", &numbsrting);
 
         if (numbsrting == 0) {
@@ -70,13 +93,12 @@ void printLinesByNumber(char* filename, int countStr, lineInfo* lineTable) {
         read(fd, tempString, lineTable[numbsrting - 1].length);
 
         tempString[lineTable[numbsrting - 1].length] = '\0';
-        printf("%s\n\n", tempString);
+        printf("%s\n", tempString);
     }
     close(fd);
 }
 
 int main(void) {
-    char filename[FILE_NAME_LEN] ;
 
     printf("Enter file name, please :\n");
     if (fgets(filename,FILE_NAME_LEN, stdin) == NULL) {
@@ -89,18 +111,12 @@ int main(void) {
         }
     }
 
-    int countStrings = 0;
-
-    lineInfo* lineTable = makeIndentationTable(filename, &countStrings);
+    makeIndentationTable();
     if (lineTable == NULL) {
         return 1;
     }
 
-    for (int i = 0; i < countStrings; i++) {
-        printf("%d %d\n", lineTable[i].length, lineTable[i].offset);
-    }
-
-    printLinesByNumber(filename, countStrings, lineTable);
+    printLinesByNumber();
 
     free(lineTable);
     return 0;
