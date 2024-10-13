@@ -1,8 +1,11 @@
-#include <sys/resource.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
-#include <getopt.h>
-#include <stdlib.h>
+#include <limits.h>
+#include <string.h>
+#include <errno.h>
+#include <sys/resource.h>
+#include <stdint.h>
 
 extern char **environ;
 
@@ -18,7 +21,7 @@ void do_options(char opt)
         break;
 
     case 's':
-        if (setpgid(getpid(), getpid()) == 0) // if PID = PGID, then procces with PID is lid group, меняет PGID
+        if (setpgid(getpid(), getpid()) == 0)
         {
             printf("successfully");
         }
@@ -33,19 +36,22 @@ void do_options(char opt)
         break;
 
     case 'u':
-        if (getrlimit(RLIMIT_FSIZE, &new_lim) == 0)
-        {
-            printf("file size soft lim: %ld, hard lim: %ld", new_lim.rlim_cur, new_lim.rlim_max);
-        }
-        else
+        if (getrlimit(RLIMIT_NOFILE, &new_lim) != 0)
         {
             printf("error");
         }
+        else
+        {
+            printf("file size soft lim: %ld, hard lim: %ld", new_lim.rlim_cur, new_lim.rlim_max);
+        }
+        getrlimit(RLIMIT_FSIZE, &new_lim);
+        printf("file size soft lim: %ld, hard lim: %ld", new_lim.rlim_cur, new_lim.rlim_max);
         break;
 
     case 'U':
         getrlimit(RLIMIT_FSIZE, &new_lim);
         tmp = atol(optarg);
+
         if (tmp < -1)
         {
             printf("error");
