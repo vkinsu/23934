@@ -77,6 +77,7 @@ int main(int argc, char *argv[]) {
     }
 
     struct stat st;
+    fstat(fd, &st);
     size_t file_size = st.st_size;
     char *mapped_file = mmap(NULL, file_size, PROT_READ, MAP_PRIVATE, fd, 0);
     close(fd);
@@ -134,4 +135,3 @@ int main(int argc, char *argv[]) {
     munmap(mapped_file, file_size);  // Освобождаем отображение файла
     return 0;
 }
-
