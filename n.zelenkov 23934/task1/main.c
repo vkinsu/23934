@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
                 if (getrlimit(RLIMIT_FSIZE, &rl) == -1) {
                     print_error("Ошибка в getrlimit");
                 }
-                printf("Текущий ulimit (размер файла): %ld\n", rl.rlim_cur);
+                printf("Текущий ulimit (размер файла): %lu\n", rl.rlim_cur);
                 break;
             }
             case 'U': {
@@ -63,7 +63,7 @@ int main(int argc, char *argv[]) {
                 if (setrlimit(RLIMIT_FSIZE, &rl) == -1) {
                     print_error("Ошибка в setrlimit");
                 }
-                printf("Новый ulimit установлен на %ld\n", new_ulimit);
+                printf("Новый ulimit установлен на %lu\n", new_ulimit);
                 break;
             }
             case 'c': {
@@ -71,7 +71,7 @@ int main(int argc, char *argv[]) {
                 if (getrlimit(RLIMIT_CORE, &rl) == -1) {
                     print_error("Ошибка в getrlimit");
                 }
-                printf("Ограничение размера core-файла: %ld байт\n", rl.rlim_cur);
+                printf("Ограничение размера core-файла: %lu байт\n", rl.rlim_cur);
                 break;
             }
             case 'C': {
@@ -86,7 +86,7 @@ int main(int argc, char *argv[]) {
                 if (setrlimit(RLIMIT_CORE, &rl) == -1) {
                     print_error("Ошибка в setrlimit");
                 }
-                printf("Новый размер core-файла установлен на %ld байт\n", new_core_size);
+                printf("Новый размер core-файла установлен на %lu байт\n", new_core_size);
                 break;
             }
             case 'd': {
