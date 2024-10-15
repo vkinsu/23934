@@ -1,164 +1,170 @@
-#include <sys/resource.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
-#include <getopt.h>
-#include <stdlib.h>
-
-extern char **environ;
-
-void do_options(char opt)
-{
-    long tmp = 0;
-    struct rlimit new_lim;
-
-    switch (opt)
-    {
-    case 'i':
-        printf("real user ID: %d, effective user ID: %d\nreal group ID: %d, effective group ID: %d", getuid(), geteuid(), getgid(), getegid());
-        break;
-
-    case 's':
-        if (setpgid(getpid(), getpid()) == 0) // if PID = PGID, then procces with PID is lid group, меняет PGID
-        {
-            printf("successfully");
-        }
-        else
-        {
-            printf("error");
-        }
-        break;
-
-    case 'p':
-        printf("procces ID: %d, procces parent ID: %d, group ID: %d", getpid(), getppid(), getpgrp());
-        break;
-
-    case 'u':
-        if (getrlimit(RLIMIT_FSIZE, &new_lim) == 0)
-        {
-            printf("file size soft lim: %ld, hard lim: %ld", new_lim.rlim_cur, new_lim.rlim_max);
-        }
-        else
-        {
-            printf("error");
-        }
-        break;
-
-    case 'U':
-        getrlimit(RLIMIT_FSIZE, &new_lim);
-        tmp = atol(optarg);
-        if (tmp < -1)
-        {
-            printf("error");
-            break;
-        }
-        else
-        {
-            new_lim.rlim_cur = tmp;
-        }
-
-        if (-1 == setrlimit(RLIMIT_FSIZE, &new_lim))
-        {
-            printf("error\n");
-        }
-        else
-        {
-            getrlimit(RLIMIT_FSIZE, &new_lim);
-            printf("new soft lim: %ld", new_lim.rlim_cur);
-        }
-        break;
-
-    case 'c':
-        if (-1 == getrlimit(RLIMIT_CORE, &new_lim))
-        {
-            printf("error\n");
-        }
-        else
-        {
-            printf("CORE file size soft lim: %ld, hard lim: %ld", new_lim.rlim_cur, new_lim.rlim_max);
-        }
-        break;
-
-    case 'C':
-        getrlimit(RLIMIT_CORE, &new_lim);
-        new_lim.rlim_cur = atol(optarg);
-
-        if (-1 == setrlimit(RLIMIT_CORE, &new_lim))
-        {
-            printf("error\n");
-        }
-        else
-        {
-            getrlimit(RLIMIT_CORE, &new_lim);
-            printf("new soft lim CORE file size: %ld", new_lim.rlim_cur);
-        }
-        break;
-
-    case 'd':
-    {
-        char *path = getenv("PWD");
-
-        if (NULL == path)
-        {
-            printf("error\n");
-        }
-        else
-        {
-            printf("current directory: %s\n", path);
-        }
-        break;
-    }
-
-    case 'v':
-    {
-        char **ptr = environ;
-        for (; *ptr != NULL; ptr++)
-        {
-            printf("%s\n", *ptr);
-        }
-        break;
-    }
-
-    case 'V':
-    {
-        if (-1 == putenv(optarg))
-        {
-            printf("error");
-        }
-        break;
-    }
-
-    case '?':
-        printf("invalid option is %c", optopt);
-    }
-    printf("\n");
-}
+#include <limits.h>
+#include <string.h>
+#include <errno.h>
+#include <sys/resource.h>
+#include <stdint.h>
 
 int main(int argc, char *argv[])
 {
-    char options[] = "ispuU:cC:dvV:";
-    char cur_opt = 0;
-    char *opt = (char *)malloc(8);
-    int ind = 0, size = 8;
+    int opt;
+    int s_opts = argc;
+    int s_args = argc;
+    int *opts = malloc(s_opts * sizeof(int));
+    char **args = malloc(s_args * sizeof(char *));
+    int i_opts = 0;
+    int i_args = 0;
 
-    while ((cur_opt = (char)getopt(argc, argv, options)) != -1)
+    while ((opt = getopt(argc, argv, "ispuU:cC:dvV:")) != EOF)
     {
-        if (ind == size)
+        if (opt == 'U' || opt == 'C' || opt == 'V')
         {
-            size *= 2;
-            opt = (char *)realloc(opt, size);
-            opt[ind] = cur_opt;
+            if (s_opts <= i_opts)
+            {
+                s_opts *= 2;
+                int *ptr = realloc(opts, s_opts * sizeof(int));
+                if (ptr == NULL)
+                {
+                    perror("");
+                    break;
+                }
+                else
+                    opts = ptr;
+            }
+            opts[i_opts++] = opt;
+            if (s_args <= i_args)
+            {
+                s_args *= 2;
+                char **ptr = realloc(args, s_args * sizeof(char *));
+                if (ptr == NULL)
+                {
+                    perror("");
+                    break;
+                }
+                else
+                    args = ptr;
+            }
+            args[i_args++] = optarg;
         }
-        else
+        else if (opt == 'i' || opt == 's' || opt == 'p' || opt == 'u' ||
+                 opt == 'c' || opt == 'd' || opt == 'v')
         {
-            opt[ind] = cur_opt;
+            if (s_opts <= i_opts)
+            {
+                s_opts *= 2;
+                int *ptr = realloc(opts, s_opts * sizeof(int));
+                if (ptr == NULL)
+                {
+                    perror("");
+                    break;
+                }
+                else
+                    opts = ptr;
+            }
+            opts[i_opts++] = opt;
         }
-        ++ind;
     }
 
-    for (int i = ind - 1; i >= 0; --i)
+    i_args--;
+    i_opts--;
+    for (; i_opts >= 0; i_opts--)
     {
-        do_options(opt[i]);
-    }
+        opt = opts[i_opts];
+        switch (opt)
+        {
+        case 'i':
+            printf("Real User ID: %d\n", getuid());
+            printf("Effective User ID: %d\n", geteuid());
+            printf("Real Group ID: %d\n", getgid());
+            printf("Effective Group ID: %d\n\n", getegid());
+            break;
+        case 's':
+            setpgid(0, 0);
+            break;
+        case 'p':
+        {
+            int pid = getpid();
+            int pgid = getpgid(pid);
+            printf("Process ID: %d\n", pid);
+            printf("Parent Process ID: %d\n", getppid());
+            printf("Process Group ID: %d\n", pgid);
+            printf("\n");
+            break;
+        }
+        case 'u':
+        {
+            struct rlimit limit;
+            getrlimit(RLIMIT_FSIZE, &limit);
+            printf("ulimit = %ju\n\n", (uintmax_t)limit.rlim_max);
+            break;
+        }
+        case 'U':
+        {
+            struct rlimit limit;
+            errno = 0;
+            limit.rlim_max = strtol(args[i_args--], NULL, 10);
 
+            if ((limit.rlim_max == 0 || limit.rlim_max == LONG_MIN || limit.rlim_max == LONG_MAX) && errno != 0)
+                perror("jhjh");
+            else
+            {
+                if (limit.rlim_cur > limit.rlim_max)
+                    limit.rlim_cur = limit.rlim_max;
+                if (setrlimit(RLIMIT_FSIZE, &limit) == -1)
+                    perror("jjhjhhj");
+            }
+
+            break;
+        }
+        case 'c':
+        {
+            struct rlimit limit;
+            getrlimit(RLIMIT_CORE, &limit);
+            printf("The maximum size of a core file is %ju bytes\n\n", (uintmax_t)limit.rlim_max);
+            break;
+        }
+        case 'C':
+        {
+            struct rlimit limit;
+            errno = 0;
+            limit.rlim_max = strtol(args[i_args--], NULL, 10);
+            if ((limit.rlim_max == 0 || limit.rlim_max == LONG_MIN || limit.rlim_max == LONG_MAX) && errno != 0)
+                perror("");
+            else
+            {
+                if (limit.rlim_cur > limit.rlim_max)
+                    limit.rlim_cur = limit.rlim_max;
+                if (setrlimit(RLIMIT_CORE, &limit) == -1)
+                    perror("");
+            }
+            break;
+        }
+        case 'd':
+        {
+            // char *DirName = malloc(PATH_MAX);
+            // getcwd(DirName, PATH_MAX);
+            // printf("The current working directory is %s\n\n", DirName);
+            // free(DirName);
+            // break;
+        }
+        case 'v':
+            printf("PATH = %s\n", getenv("PATH"));
+            printf("TERM = %s\n", getenv("TERM"));
+            printf("TZ = %s\n", getenv("TZ"));
+            printf("HOME = %s\n", getenv("HOME"));
+            printf("USER = %s\n\n", getenv("USER"));
+            break;
+        case 'V':
+        {
+            char *name = strtok(args[i_args--], "=");
+            char *value = strtok(NULL, "=");
+            setenv(name, value, 1);
+        }
+        }
+    }
+    free(opts);
+    free(args);
     return 0;
 }
