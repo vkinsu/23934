@@ -111,16 +111,21 @@ int main(int argc, char *argv[]) {
                 break;
             }
 
-            case 'd' : {
-                char* cwd = getcwd(NULL, 100);
-                if (cwd == NULL) {
-                    perror("getcwd error");
-                } else {
-                    printf("Current working directory is: %s\n", cwd);
-                    free(cwd);
+            case 'd':
+            {
+                char *path = getenv("PWD");
+
+                if (NULL == path)
+                {
+                    printf("error\n");
+                }
+                else
+                {
+                    printf("current directory: %s\n", path);
                 }
                 break;
             }
+
 
             case 'v' : {
                 char **p;
