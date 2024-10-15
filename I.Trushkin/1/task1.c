@@ -112,7 +112,7 @@ int main(int argc, char *argv[]) {
             }
 
             case 'd' : {
-                char* cwd = getcwd(NULL, 0);
+                char* cwd = getcwd(NULL, 100);
                 if (cwd == NULL) {
                     perror("getcwd error");
                 } else {
