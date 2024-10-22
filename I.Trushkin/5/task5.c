@@ -50,43 +50,69 @@ void printLinesByNumber(char* filename, int countStr, lineInfo* lineTable) {
     }
 
     int numbsrting = 0;
+    char input[10];
 
     while (1) {
         printf("Enter line number (0 to exit):\n");
-        scanf("%d", &numbsrting);
+
+        if (fgets(input, sizeof(input), stdin) == NULL) {
+            perror("failed to read input");
+            continue;
+        }
+
+        // Удаляем символ новой строки, если он присутствует
+        size_t len = strlen(input);
+        if (len > 0 && input[len - 1] == '\n') {
+            input[len - 1] = '\0';
+        }
+
+        // Преобразуем строку в число
+        char *endptr;
+        numbsrting = strtol(input, &endptr, 10);
 
         if (numbsrting == 0) {
             break;
         }
 
-        if (numbsrting > countStr || numbsrting < 1) {
+        if (numbsrting > countStr || numbsrting < 0 ) {
             printf("uncorrect numb of string\n");
             continue;
         }
 
-        lseek(fd, lineTable[numbsrting - 1].offset, SEEK_SET);
+        if (numbsrting > 0 && numbsrting < countStr){
 
-        char tempString[MAX_STR_LEN];
-        read(fd, tempString, lineTable[numbsrting - 1].length);
 
-        tempString[lineTable[numbsrting - 1].length] = '\0';
-        printf("%s\n\n", tempString);
+            lseek(fd, lineTable[numbsrting - 1].offset, SEEK_SET);
+
+            char tempString[MAX_STR_LEN];
+            read(fd, tempString, lineTable[numbsrting - 1].length);
+
+            tempString[lineTable[numbsrting - 1].length] = '\0';
+            printf("%s\n\n", tempString);
+        }
+        else{
+            continue;
+        }
     }
-    close(fd);
+        close(fd);
 }
 
-int main(void) {
-    char filename[FILE_NAME_LEN] ;
-
-    printf("Enter file name, please :\n");
-    if (fgets(filename,FILE_NAME_LEN, stdin) == NULL) {
-        perror("failed to read file name");
-    }
-    else {
-        size_t len = strlen(filename);
-        if (len > 0 && filename[len - 1] == '\n') {
-            filename[len - 1] = '\0';
+int main(int argc, char *argv[]) {
+    char filename[FILE_NAME_LEN];
+    if (argc == 1) {
+        printf("Enter file name, please:\n");
+        if (fgets(filename, FILE_NAME_LEN, stdin) == NULL) {
+            perror("failed to read file name");
+            return 1;
+        } else {
+            size_t len = strlen(filename);
+            if (len > 0 && filename[len - 1] == '\n') {
+                filename[len - 1] = '\0';
+            }
         }
+    } else {
+        strncpy(filename, argv[1], FILE_NAME_LEN - 1);
+        filename[FILE_NAME_LEN - 1] = '\0';
     }
 
     int countStrings = 0;
@@ -97,7 +123,7 @@ int main(void) {
     }
 
     for (int i = 0; i < countStrings; i++) {
-        printf("%d %d\n", lineTable[i].length, lineTable[i].offset);
+        printf("%d %ld\n", lineTable[i].length, lineTable[i].offset);
     }
 
     printLinesByNumber(filename, countStrings, lineTable);
