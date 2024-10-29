@@ -1,4 +1,4 @@
-all: lab9
+all: lab3
 
-lab9: lab9.c
-	cc -v -o lab9 lab9.c
+lab2: lab3.c
+	cc -v -o lab3 lab3.c

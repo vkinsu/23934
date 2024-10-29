@@ -79,7 +79,7 @@ int main(int argc, char *argv[]) {
         current = 0, 
         amountBytes;
 
-    int extension = 1, numberOfLine = 0, choice = 1, scan_out;  
+    int extension = 1, numberOfLine = 0, scan_out; 
 
     char buf[BUFSIZ];
 
@@ -124,18 +124,24 @@ int main(int argc, char *argv[]) {
     lines[numberOfLine].len = lenStr;
     numberOfLine++;
 
+    char choice_buffer[20];
+    long choice = 1;
+
     while (choice != 0) {
-        scan_out = scanf("%d", &choice); 
-        if (scan_out == 1) {
-            if (choice < 0 || choice > numberOfLine) {
-                fprintf(stderr, "Incorrect number.\nTry again: ");
-            } else {
-                if (printLine(lines, fd, choice) == -1){
-                    return -1;
-                }
-            }   
+        printf("Write number of line: ");
+        scanf("%20s", choice_buffer);
+        while (((choice = atol(choice_buffer)) == 0 && choice_buffer[0] != '0') || choice < 0) {
+            printf("Incorrect number.\nTry again: ");
+            scanf("%20s", choice_buffer);
+        }
+        if (choice_buffer[0] == '0') {
+            break;
+        }
+        
+        if (choice > numberOfLine) {
+            printf("Incorrect number.\nTry again: ");
         } else {
-            fprintf(stderr, "Incorrect symbol.\nTry again: ");
+            printLine(lines, fd, choice);
         }
     }
 
