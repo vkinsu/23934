@@ -12,7 +12,8 @@ int main(int argv, char* argc[]) {
         return 1;
     }
     printf("pid of parent process is: %i\n", getpid());
-    char* args[] = { "cat", argc[1], NULL };
+    char* args[] = { argc[1], argc[2], NULL }; 
+
     pid_t child_proc, child_dummy;
     int stat;
 
@@ -23,7 +24,7 @@ int main(int argv, char* argc[]) {
     }
     if (!child_proc) {
         printf("process has been created with pid: %i\n", getpid());
-        execvp("cat", args);
+        execvp(argc[1], args);
         exit(0);
     }
     printf("text in the main process before waiting of child\n");
