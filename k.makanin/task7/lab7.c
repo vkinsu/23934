@@ -1,0 +1,135 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <sys/mman.h>
+
+typedef struct line {
+    off_t offset;
+    off_t len;
+} line;
+
+int initLine(line **lines) {
+    *lines = (line*) malloc(sizeof(line));
+    if (*lines == NULL) {
+        perror("Failed to create malloc.");
+        return -1;
+    }
+    return 1;
+}
+
+int addMemory(int *extension, int numberOfLine, line **lines) {
+    if ((*extension) <= numberOfLine) {
+        (*extension) *= 2;
+        *lines = realloc(*lines, (*extension) * sizeof(line));
+        if (*lines == NULL) {
+            perror("Failed to create realloc.");
+            return -1;
+        }
+    }
+    return 1;
+}
+
+int printLine(line *lines, char *file_data, int choice) {
+    off_t lenStr = lines[choice - 1].len;
+    off_t offset = lines[choice - 1].offset;
+    char *strOut = file_data + offset;
+
+    if (fwrite(strOut, 1, lenStr, stdout) == -1) {
+        perror("Failed to fwrite.");
+        return -1;
+    }
+    return 1;
+}
+
+int main(int argc, char *argv[]) {
+    if (argc != 2) {
+        fprintf(stderr, "No filename.\n");
+        return -1;
+    }
+
+    int fd = open(argv[1], O_RDONLY);
+    if (fd == -1) {
+        perror("Failed to open.");
+        return -1;
+    }
+
+    struct stat st;
+    if (fstat(fd, &st) == -1) {
+        perror("Failed to fstat.");
+        close(fd);
+        return -1;
+    }
+
+    char *file_data = mmap(NULL, st.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+    if (file_data == MAP_FAILED) {
+        perror("Failed to mmap.");
+        close(fd);
+        return -1;
+    }
+
+    off_t lenStr = 0,
+        previousLen = 0, 
+        current = 0;
+
+    int extension = 1, numberOfLine = 0; 
+
+    line *lines;
+    if (initLine(&lines) == -1){
+        munmap(file_data, st.st_size);
+        close(fd);
+        return -1;
+    }
+
+    while (current < st.st_size){
+        if (file_data[current] == '\n'){
+            if (addMemory(&extension, numberOfLine, &lines) == -1){
+                munmap(file_data, st.st_size);
+                close(fd);
+                return -1;
+            }
+            lines[numberOfLine].offset = previousLen;
+            lines[numberOfLine].len = lenStr + 1;
+            previousLen += lenStr + 1;
+            lenStr = 0;
+            numberOfLine++;
+            current++;
+        } else {
+            lenStr++;
+            current++;
+        }
+    }
+
+    lines[numberOfLine].offset = previousLen;
+    lines[numberOfLine].len = lenStr;
+    numberOfLine++;
+
+    char choice_buffer[20];
+    long choice = 1;
+
+    while (choice != 0) {
+        printf("Write number of line: ");
+        scanf("%20s", choice_buffer);
+        while (((choice = atol(choice_buffer)) == 0 && choice_buffer[0] != '0') || choice < 0) {
+            printf("Incorrect number.\nTry again: ");
+            scanf("%20s", choice_buffer);
+        }
+        if (choice_buffer[0] == '0') {
+            break;
+        }
+        
+        if (choice > numberOfLine) {
+            printf("Incorrect number.\nTry again: ");
+        } else {
+            printLine(lines, file_data, choice);
+        }
+    }
+
+    free(lines);
+    munmap(file_data, st.st_size);
+    close(fd);
+
+    return 0;
+}
