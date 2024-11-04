@@ -1,2 +1,2 @@
 all:
-	gcc task4.c.c -o task4
+	gcc task4.c -o task4
