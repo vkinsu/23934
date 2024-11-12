@@ -12,7 +12,7 @@ const char *yellow = "\033[33m";
 
 void handler_SIGINT_squeak(int signum) {
     count++;
-    write(STDOUT_FILENO, "\a", 1); // Издает звуковой сигнал
+    write(STDOUT_FILENO, "\a", 1);
 }
 
 void handler_SIGQUIT_exit(int signum) {
