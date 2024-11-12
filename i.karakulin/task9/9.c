@@ -20,11 +20,11 @@ int main()
     }
     else
     {
-        printf("Message BEFORE the child process is completed\n");
+        printf("\n-------------\nMessage BEFORE the child process is completed\n");
 
         wait(NULL);
 
-        printf("Message AFTER the child process is completed\n");
+        printf("\n-------------\nMessage AFTER the child process is completed\n");
     }
 
     return 0;
