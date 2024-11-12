@@ -72,19 +72,17 @@ int main() {
         printf("%d %d %d\n", lines[i].position, lines[i].tabs, lines[i].length);
     }
 
-    char line_number;
-    char enter;
-    signal (SIGALRM, MyAlarm);
+    size_t line_number;
+    signal (SIGAMyAlarm);
 
     while(1){
         alarm(5);
         printf("Введите номер строки(0 для выхода): ");
-        scanf("%c", &line_number);
-	scanf("%c", &enter);
-        if (line_number == 48) {
+        scanf("%zu", &line_number);
+        
+        if (line_number == 0) {
             break;
         }
-	line_number -= 48;
         if (line_number > 0 && line_number <= line_count + 1){
             printf("Строка %d: ", line_number);
             int num = lines[line_number - 1].position + lines[line_number - 1].tabs;

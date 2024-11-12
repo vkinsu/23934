@@ -55,17 +55,20 @@ int main() {
         pos++;
     }
 
-    size_t line_number;
+    char line_number;
+    char enter;
     signal (SIGALRM, MyAlarm);
 
     while (1) {
         alarm(5);
         printf("Введите номер строки(0 для выхода): ");
-        scanf("%zu", &line_number);
-        
-        if (line_number == 0) {
+        scanf("%c", &line_number);
+	scanf("%c", &enter);
+
+        if (line_number == '0') {
             break;
         }
+	line_number -= 48;
         if (line_number > 0 && line_number <= line_count + 1) {
             lseek(fd, lines[line_number - 1].position + lines[line_number - 1].tabs, SEEK_SET);
             read(fd, buffer, lines[line_number - 1].length);

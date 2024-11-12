@@ -16,12 +16,11 @@ void handle_sigquit(int sig) {
 }
 
 int main() {
-    signal(SIGINT, handle_sigint);
-    signal(SIGQUIT, handle_sigquit);
-
     printf("Program running... Press CTRL-C to sound beep, Press CTRL-\\ to quit.\n");
 
     while (1) {
+	signal(SIGINT, handle_sigint);
+        signal(SIGQUIT, handle_sigquit);
         pause();
     }
 
