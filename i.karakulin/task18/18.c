@@ -8,11 +8,11 @@
 #include <libgen.h>
 #include <unistd.h>
 
-typedef struct stat stat;
+// typedef struct stat stat;
 
 void print_file_info(const char *file_path)
 {
-    stat file_stat;
+    struct stat file_stat;
 
     if (lstat(file_path, &file_stat) == -1)
     {
@@ -53,11 +53,11 @@ void print_file_info(const char *file_path)
 
     // Имя владельца
     struct passwd *pwd = getpwuid(file_stat.st_uid); // по идентефиктору пользователя
-    char *owner = pwd ? pwd->pw_name : "unknown";
+    char *owner = pwd ? pwd->pw_name : (char *)"unknown";
 
     // Имя группы
     struct group *grp = getgrgid(file_stat.st_gid);
-    char *group = grp ? grp->gr_name : "unknown";
+    char *group = grp ? grp->gr_name : (char *)"unknown";
 
     // Размер файла (только если это обычный файл)
     char size_str[16];
