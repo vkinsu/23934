@@ -13,6 +13,7 @@ const char *yellow = "\033[33m";
 void handler_SIGINT_squeak(int signum) {
     count++;
     write(STDOUT_FILENO, "\a", 1);
+    signal(SIGINT, handler_SIGINT_squeak);
 }
 
 void handler_SIGQUIT_exit(int signum) {
@@ -26,11 +27,12 @@ int main() {
     printf("The program will exit when it receives SIGQUIT (Ctr-\\).\n%s", reset);
 
     count = 0;
+    signal(SIGINT, handler_SIGINT_squeak);
+    signal(SIGQUIT, handler_SIGQUIT_exit);
 
     while (1) {
         pause();
-        signal(SIGINT, handler_SIGINT_squeak);
-        signal(SIGQUIT, handler_SIGQUIT_exit);
+
     }
     return 0;
 }
