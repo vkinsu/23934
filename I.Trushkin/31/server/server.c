@@ -92,8 +92,8 @@ int main() {
                 }
                 else{
                     text[bytesRead] = '\0';
-                    for (int i = 0; i < bytesRead; i++) {
-                        text[i] = toupper(text[i]);
+                    for (int j = 0; j < bytesRead; j++) {
+                        text[j] = toupper(text[j]);
                     }
                     printf("%s%s%s\n", purple, text, reset);
                 }
