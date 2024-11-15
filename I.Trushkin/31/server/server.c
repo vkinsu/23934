@@ -84,7 +84,7 @@ int main() {
                     } else {
                         ssize_t bytesRead = read(act_set[i].fd, text, MAX_LENGTH_TEXT - 1);
                         if (bytesRead <= 0) {
-                            close(i);
+                            close(act_set[i].fd);
                         } else {
                             text[bytesRead] = '\0'; // Null-terminate the string
                             for (int j = 0; j < bytesRead; j++) {
