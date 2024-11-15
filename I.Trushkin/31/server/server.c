@@ -15,12 +15,10 @@ const char *green = "\033[32m";
 const char *purple = "\033[35m";
 const char *yellow = "\033[33m";
 
-
 int main() {
-
     unlink("socket");
 
-    int sock = socket(AF_UNIX,SOCK_STREAM, 0);
+    int sock = socket(AF_UNIX, SOCK_STREAM, 0);
     int new_sock;
 
     struct sockaddr_un addr;
@@ -32,13 +30,10 @@ int main() {
 
     int size;
 
-
-
     if (sock == -1) {
         printf("%sError: failed to create socket %s\n", red, reset);
         exit(1);
     }
-
 
     addr.sun_family = AF_UNIX;
     strncpy(addr.sun_path, "socket", sizeof(addr.sun_path) - 1);
@@ -59,7 +54,6 @@ int main() {
 
     printf("%sThe server ready to listen%s\n", green, reset);
 
-
     while (1) {
         read_set = active_set;
 
@@ -71,31 +65,28 @@ int main() {
         for (int i = 0; i <= max_fd; i++) {
             if (FD_ISSET(i, &read_set)) {
                 if (i == sock) {
-
                     new_sock = accept(sock, NULL, NULL);
                     if (new_sock == -1) {
                         printf("%sError: failed to accept %s\n", red, reset);
                         exit(1);
-                    }
-                    else{
+                    } else {
                         FD_SET(new_sock, &active_set);
                         if (new_sock > max_fd) {
                             max_fd = new_sock;
                         }
                     }
-                }
-            } else {
-                ssize_t bytesRead = read(i, text, MAX_LENGTH_TEXT);
-                if (bytesRead <= 0) {
-                    close(new_sock);
-                    FD_CLR(i, &active_set);
-                }
-                else{
-                    text[bytesRead] = '\0';
-                    for (int j = 0; j < bytesRead; j++) {
-                        text[j] = toupper(text[j]);
+                } else {
+                    ssize_t bytesRead = read(i, text, MAX_LENGTH_TEXT - 1);
+                    if (bytesRead <= 0) {
+                        close(i);
+                        FD_CLR(i, &active_set);
+                    } else {
+                        text[bytesRead] = '\0';
+                        for (int j = 0; j < bytesRead; j++) {
+                            text[j] = toupper(text[j]);
+                        }
+                        printf("%s%s%s\n", purple, text, reset);
                     }
-                    printf("%s%s%s\n", purple, text, reset);
                 }
             }
         }
