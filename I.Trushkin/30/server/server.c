@@ -6,6 +6,7 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <ctype.h>
+#define MAX_LENGTH_TEXT 40
 
 const char *red = "\033[31m";
 const char *reset = "\033[0m";
@@ -35,7 +36,29 @@ int main() {
         exit(1);
     }
     
+    printf("%sThe server ready to listen%s\n", green, reset);
     
     
+    struct sockaddr_un client_addr;
+    socklen_t client_addr_len = sizeof(client_addr);
+    //int newSock = accept(sock, (struct sockaddr *)&client_addr, &client_addr_len);
+    
+    int newSock = accept(sock, NULL, NULL);
+    if (newSock == -1){
+        printf("%sError: failed to accept %s\n", red, reset);
+    }
+    
+    char text[MAX_LENGTH_TEXT];
+    
+    while (1) {
+        ssize_t bytesRead = read(newSock, text, MAX_LENGTH_TEXT);
+        if (bytesRead <= 0) break; 
+        text[bytesRead] = '0'; 
+        for (int i = 0; i < bytesRead; i++) {
+                text[i] = toupper(text[i]); 
+        }
+        printf("%s%s%s\n", purple, text, reset); 
+    } 
     unlink("socket");
+    close(sock);
 }
