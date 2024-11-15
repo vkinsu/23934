@@ -14,16 +14,9 @@ const char *reset = "\033[0m";
 const char *green = "\033[32m";
 const char *purple = "\033[35m";
 const char *yellow = "\033[33m";
-int flagWhile = 0;
 
-
-void handle_signal(int sig) {
-    flagWhile = 1;
-}
 
 int main() {
-
-    signal(SIGINT, handle_signal);
 
     int sock = socket(AF_UNIX,SOCK_STREAM, 0);
     int new_sock;
@@ -65,7 +58,7 @@ int main() {
     printf("%sThe server ready to listen%s\n", green, reset);
 
 
-    while (!flagWhile) {
+    while (1) {
         read_set = active_set;
 
         if (select(max_fd + 1, &read_set, NULL, NULL, NULL) < 0) {
@@ -76,7 +69,7 @@ int main() {
         for (int i = 0; i <= max_fd; i++) {
             if (FD_ISSET(i, &read_set)) {
                 if (i == sock) {
-                    size = sizeof(client_addr);
+
                     new_sock = accept(sock, NULL, NULL);
                     if (new_sock == -1) {
                         printf("%sError: failed to accept %s\n", red, reset);
@@ -85,12 +78,12 @@ int main() {
                     else{
                         FD_SET(new_sock, &active_set);
                         if (new_sock > max_fd) {
-                            max_sock = new_fd;
+                            max_fd = new_sock;
                         }
                     }
                 }
             } else {
-                ssize_t bytesRead = read(new_sock, text, MAX_LENGTH_TEXT);
+                ssize_t bytesRead = read(i, text, MAX_LENGTH_TEXT);
                 if (bytesRead <= 0) {
                     close(new_sock);
                     FD_CLR(i, &active_set);
