@@ -29,5 +29,13 @@ int main() {
         printf("%sError: failed to set socket address %s\n", red, reset);
         exit(1);
     }
-
+    
+    if (listen(sock,1) ==-1){
+        printf("%sError: failed to listen socket %s\n", red, reset);
+        exit(1);
+    }
+    
+    
+    
+    unlink("socket");
 }
