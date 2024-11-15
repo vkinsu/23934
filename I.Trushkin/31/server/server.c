@@ -7,7 +7,8 @@
 #include <sys/un.h>
 #include <ctype.h>
 #include <signal.h>
-#include <sys/time.h> // Для структуры timeval
+#include <sys/time.h>
+#include <poll.h>
 #define MAX_LENGTH_TEXT 40
 
 const char *red = "\033[31m";
@@ -26,10 +27,8 @@ int main() {
 
     int sock = socket(AF_UNIX, SOCK_STREAM, 0);
     int new_sock;
-    fd_set active_set, read_set;
     struct sockaddr_un addr;
     struct sockaddr_un client_addr;
-    int size;
     char text[MAX_LENGTH_TEXT];
 
     if (sock == -1) {
@@ -53,46 +52,46 @@ int main() {
         exit(1);
     }
 
-    FD_ZERO(&active_set);
-    FD_SET(sock, &active_set);
+    struct pollfd act_set[100];
+    act_set[0].fd = sock;
+    act_set[0].events = POLLIN;
+    act_set[0].revents = 0;
+    int num_set = 1;
 
     printf("%sThe server ready to listen%s\n", green, reset);
 
-    struct timeval timeout;
-    timeout.tv_sec = 5; // Таймаут в секундах
-    timeout.tv_usec = 0; // Таймаут в микросекундах
-
     while (!flagWhile) {
-        read_set = active_set;
-
-        if (select(FD_SETSIZE, &read_set, NULL, NULL, &timeout) < 0) {
-            printf("%sError: failed to select failure %s\n", red, reset);
-            close(sock);
-            exit(1);
+        int ret = poll(act_set, num_set, 10000);
+        if (ret < 0) {
+            printf("%sError: poll failure %s\n", red, reset);
+            exit(0);
         }
+        if (ret > 0) {
+            for (int i = 0; i < num_set; i++) {
+                if (act_set[i].revents & POLLIN) {
+                    act_set[i].revents &= ~POLLIN;
 
-        for (int i = 0; i < FD_SETSIZE; i++) {
-            if (FD_ISSET(i, &read_set)) {
-                if (i == sock) {
-                    size = sizeof(client_addr);
-                    new_sock = accept(sock, NULL, NULL);
-                    if (new_sock == -1) {
-                        printf("%sError: failed to accept %s\n", red, reset);
-                        close(sock);
-                        exit(1);
-                    }
-                    FD_SET(new_sock, &active_set);
-                } else {
-                    ssize_t bytesRead = read(i, text, MAX_LENGTH_TEXT - 1);
-                    if (bytesRead <= 0) {
-                        close(i);
-                        FD_CLR(i, &active_set);
-                    } else {
-                        text[bytesRead] = '\0'; // Null-terminate the string
-                        for (int j = 0; j < bytesRead; j++) {
-                            text[j] = toupper(text[j]);
+                    if (i == 0) {
+                        new_sock = accept(sock, NULL, NULL);
+                        if (num_set < 100) {
+                            act_set[i].fd = new_sock;
+                            act_set[i].events = POLLIN;
+                            act_set[i].revents = 0;
+                            num_set++;
+                        } else {
+                            printf("%sERROR: no more sockets%s\n", red, reset);
                         }
-                        printf("%s%s%s\n", purple, text, reset);
+                    } else {
+                        ssize_t bytesRead = read(act_set[i].fd, text, MAX_LENGTH_TEXT - 1);
+                        if (bytesRead <= 0) {
+                            close(i);
+                        } else {
+                            text[bytesRead] = '\0'; // Null-terminate the string
+                            for (int j = 0; j < bytesRead; j++) {
+                                text[j] = toupper(text[j]);
+                            }
+                            printf("%s%s%s\n", purple, text, reset);
+                        }
                     }
                 }
             }
