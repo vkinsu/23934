@@ -28,6 +28,5 @@ int main() {
     if (bind(sock, (struct sockaddr*)&addr, sizeof(addr))==-1) {
         printf("%sError: failed to set socket address %s\n", red, reset);
         exit(1);
-    }
 
 }
