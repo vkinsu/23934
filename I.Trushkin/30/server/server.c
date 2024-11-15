@@ -12,6 +12,8 @@ const char *red = "\033[31m";
 const char *reset = "\033[0m";
 const char *green = "\033[32m";
 const char *purple = "\033[35m";
+const char *yellow = "\033[33m";
+
 
 
 int main() {
@@ -41,8 +43,6 @@ int main() {
     
     struct sockaddr_un client_addr;
     socklen_t client_addr_len = sizeof(client_addr);
-    //int newSock = accept(sock, (struct sockaddr *)&client_addr, &client_addr_len);
-    
     int newSock = accept(sock, NULL, NULL);
     if (newSock == -1){
         printf("%sError: failed to accept %s\n", red, reset);

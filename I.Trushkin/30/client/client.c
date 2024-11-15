@@ -13,6 +13,7 @@ const char *red = "\033[31m";
 const char *reset = "\033[0m";
 const char *green = "\033[32m";
 const char *purple = "\033[35m";
+const char *yellow = "\033[33m";
 
 
 int main() {
@@ -23,7 +24,7 @@ int main() {
         exit(1);
     }
 
-    printf("%sThe client ready to connect%s\n", green, reset);
+    printf("%sThe client ready to connect%s\n", green, yellow);
     
     struct sockaddr_un addr;
     addr.sun_family = AF_UNIX;
