@@ -18,6 +18,8 @@ const char *yellow = "\033[33m";
 
 int main() {
 
+    unlink("socket");
+
     int sock = socket(AF_UNIX,SOCK_STREAM, 0);
     int new_sock;
 
