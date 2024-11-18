@@ -70,7 +70,7 @@ int main(int argc, char *argv[]) {
             continue;
         }
         prntmode(&stbuf, &isFile);
-        printf("%5u\t", stbuf.st_nlink);
+        printf("%5lu\t", stbuf.st_nlink);
         prntuser(&stbuf);
         if (isFile==1) {
             printf("%12lli", (long long int)stbuf.st_size);

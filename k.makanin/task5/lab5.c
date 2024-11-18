@@ -62,6 +62,13 @@ int printLine(line *lines, int fd, int choice) {
     return 1;
 }
 
+void printStruct(line *lines, int num) {
+    
+    for (int i = 0; i < num; i++) {
+        printf("%d - offset: %ld len: %ld \n", i, lines[i].offset, lines[i].len);
+    }
+}
+
 int main(int argc, char *argv[]) {
     if (argc != 2) {
         fprintf(stderr, "No filename.\n");
@@ -126,6 +133,8 @@ int main(int argc, char *argv[]) {
 
     char choice_buffer[20];
     long choice = 1;
+
+    printStruct(lines, numberOfLine);
 
     while (choice != 0) {
         printf("Write number of line: ");
