@@ -2,3 +2,7 @@
 .idea/
 # Игнорировать все файлы с расширением .exe
 *.exe
+
+**/cmake-build-debug/
+**/build/
+**/CMakeLists.txt
