@@ -24,7 +24,7 @@ int main() {
         str_list[count].string = (char*)malloc(strlen(buffer) + 1);
         strcpy(str_list[count].string, buffer);
 
-        if (buffer[strlen(buffer) - 1] == '.') {
+        if (buffer[0] == '.') {
             flag = 1;
         }
 
