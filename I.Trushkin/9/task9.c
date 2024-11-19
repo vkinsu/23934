@@ -10,7 +10,13 @@
 const char *red = "\x1b[31m";
 const char *reset = "\x1b[0m";
 const char *green = "\x1b[32m";
-const char *purple = "\x1b[35m";switch (pid = fork()) {
+const char *purple = "\x1b[35m";
+
+
+int main() {
+    pid_t pid;
+    char filename[FILE_NAME_LEN];
+    switch (pid = fork()) {
         case -1:
             printf("%sError: failed to create subprocess %s", red, reset);
             exit(1);
@@ -37,10 +43,3 @@ const char *purple = "\x1b[35m";switch (pid = fork()) {
     }
     return 0;
 }
-
-
-
-int main() {
-    pid_t pid;
-    char filename[FILE_NAME_LEN];
-
