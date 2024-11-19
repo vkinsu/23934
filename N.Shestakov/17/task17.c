@@ -36,8 +36,8 @@ void printBuffer(const char *buffer, int start_index, int current_position) {
 
     printf("\r> %.*s", length_to_print, buffer + start_index);
     fflush(stdout);
-
-    for (int i = 0; i < length_to_print; i++) {
+    int i;
+    for (i = 0; i < length_to_print; i++) {
         printf("\b \b");
     }
 }
@@ -82,7 +82,8 @@ int main() {
 
         if (c == KILL && total_length > 0) {
             // Очистить текущую строку
-            for (int i = total_length; i % MAX_LENGTH >= 0; i--) {input[i] = '\0';}
+            int i;
+            for (i = total_length; i % MAX_LENGTH >= 0; i--) {input[i] = '\0';}
             total_length -= position;
             position = MAX_LENGTH;
             printBuffer(input, total_length - (total_length % MAX_LENGTH) + str_num, total_length);
