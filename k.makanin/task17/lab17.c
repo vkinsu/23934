@@ -52,7 +52,7 @@ void erase_last_word(char *line, int *cursor) {
 
 void handle_input(char *line, int *cursor) {
     char ch;
-    while ((ch = getchar()) != EOF) {
+    while (read(STDIN_FILENO, &ch, 1) > 0) {
         if (ch == '\x7F') { // ERASE
             erase_last_char(line, cursor);
         } else if (ch == '\x15') { // KILL
