@@ -3,8 +3,10 @@
 #include <unistd.h>
 #include <termios.h>
 #include <string.h>
+#include <poll.h>
 
 #define MAX_LINE_LENGTH 40
+#define TIMEOUT 5000  // 5 seconds in milliseconds
 
 void disable_echo_canonical_mode() {
     struct termios term;
@@ -51,32 +53,47 @@ void erase_last_word(char *line, int *cursor) {
 }
 
 void handle_input(char *line, int *cursor) {
+    struct pollfd fds;
+    fds.fd = STDIN_FILENO;
+    fds.events = POLLIN;
+
     char ch;
-    while (read(STDIN_FILENO, &ch, 1) > 0) {
-        if (ch == '\x7F') { // ERASE
-            erase_last_char(line, cursor);
-        } else if (ch == '\x15') { // KILL
-            kill_line(line, cursor);
-        } else if (ch == '\x17') { // CTRL-W
-            erase_last_word(line, cursor);
-        } else if (ch == '\x04' && *cursor == 0) { // CTRL-D at the beginning of the line
+    while (1) {
+        int ret = poll(&fds, 1, TIMEOUT);
+        if (ret == -1) {
+            perror("poll");
             break;
-        } else if (ch == '\x07') { // Beep for unprintable characters
-            beep();
-        } else if (*cursor < MAX_LINE_LENGTH) {
-            if (ch == '\n') {
-                printf("\n");
-                fflush(stdout);
-                line[*cursor] = '\0';
+        } else if (ret == 0) {
+            printf("\nTimeout. Exiting...\n");
+            break;
+        }
+
+        if (read(STDIN_FILENO, &ch, 1) > 0) {
+            if (ch == '\x7F') { // ERASE
+                erase_last_char(line, cursor);
+            } else if (ch == '\x15') { // KILL
+                kill_line(line, cursor);
+            } else if (ch == '\x17') { // CTRL-W
+                erase_last_word(line, cursor);
+            } else if (ch == '\x04' && *cursor == 0) { // CTRL-D at the beginning of the line
                 break;
+            } else if (ch == '\x07') { // Beep for unprintable characters
+                beep();
+            } else if (*cursor < MAX_LINE_LENGTH) {
+                if (ch == '\n') {
+                    printf("\n");
+                    fflush(stdout);
+                    line[*cursor] = '\0';
+                    break;
+                } else {
+                    putchar(ch);
+                    fflush(stdout);
+                    line[(*cursor)++] = ch;
+                    line[*cursor] = '\0';
+                }
             } else {
-                putchar(ch);
-                fflush(stdout);
-                line[(*cursor)++] = ch;
-                line[*cursor] = '\0';
+                beep();
             }
-        } else {
-            beep();
         }
     }
 }
