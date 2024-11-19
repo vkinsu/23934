@@ -27,17 +27,17 @@ int main(int argc, char* argv[])
             }
             else
             {
-                if ((sb.st_mode & 0xf000)==0x1000)
+                if (S_ISREG(sb.st_mode))
                 {
-                    printf("- ");
+                    printf("-");
                 }
                 if ((sb.st_mode & 0xf000)==0x4000)
                 {
-                    printf("d ");
+                    printf("d");
                 }
-                if ((sb.st_mode & 0xf000)!=0x1000 && (sb.st_mode & 0xf000)!=0x4000)
+                if (!(S_ISREG(sb.st_mode)) && (sb.st_mode & 0x4000)!=0x4000)
                 {
-                    printf("? ");
+                    printf("?");
                 }
                 if (sb.st_mode & 00400)
                 {
@@ -57,11 +57,11 @@ int main(int argc, char* argv[])
                 }
                 if (sb.st_mode &00100)
                 {
-                    printf("x ");
+                    printf("x");
                 }
                 else
                 {
-                    printf("- ");
+                    printf("-");
                 }
                 if (sb.st_mode & 00040)
                 {
@@ -81,11 +81,11 @@ int main(int argc, char* argv[])
                 }
                 if (sb.st_mode &00010)
                 {
-                    printf("x ");
+                    printf("x");
                 }
                 else
                 {
-                    printf("- ");
+                    printf("-");
                 }
                 if (sb.st_mode & 00004)
                 {
@@ -105,23 +105,23 @@ int main(int argc, char* argv[])
                 }
                 if (sb.st_mode &00001)
                 {
-                    printf("x ");
+                    printf("x");
                 }
                 else
                 {
-                    printf("- ");
+                    printf("-");
                 }
+		printf(" %3d", sb.st_nlink);
                 grp=getgrgid(sb.st_gid);
-                printf("%s ", grp->gr_name);
+                printf(" %s ", grp->gr_name);
                 pwp=getpwuid(sb.st_uid);
                 printf("%s ", pwp->pw_name);
-                if ((sb.st_mode & 0x1000)==0x1000)
-                {
-                    printf("%ld ", sb.st_size);
-                }
+                printf("%7ld ", sb.st_size);
+		char month[12][4]={"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", 
+"Sep", "Oct", "Nov", "Dec"};
                 mt=sb.st_mtime;
                 struct tm *mtime=localtime(&mt);
-                printf("%d/%d %d:%02d ", mtime->tm_mon+1, mtime->tm_mday, mtime->tm_hour, mtime->tm_min);
+                printf("%s %d %2d:%02d ", month[mtime->tm_mon], mtime->tm_mday, mtime->tm_hour, mtime->tm_min);
                 index=0;
                 j=0;
                 while (argv[i][j]!='\0')

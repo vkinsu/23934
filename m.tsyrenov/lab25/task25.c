@@ -35,10 +35,7 @@ int main(
             while (1)
             {
                 read(pipefd[0], &str, 1);
-                if ((int)str>=97 && (int)str<=122)
-                {
-                    str=(char)toupper((int)str);
-                }
+                str=(char)toupper((int)str);
                 if (str=='\0')
                 {
                     break;

@@ -4,6 +4,7 @@
 #include <termios.h>
 #include <string.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 int main()
 {
@@ -24,7 +25,6 @@ int main()
     while(1)
     {
         scanf("%c", &s);
-        printf("%c", s);
         if ((int)s==127)
         {
             printf("\b \b");
@@ -69,11 +69,12 @@ int main()
             numberline++;
             pos=0;
         }
-        if ((int)s<32)
+        if (!(isprint(s)))
         {
-            printf("\a");
+            putchar('\a');
             continue;
         }
+	printf("%c", s);
         lines[numberline][pos]=s;
         pos++;
         if (pos>40)
@@ -114,8 +115,7 @@ int main()
                     printf("%c", s);
                     numberline++;
                     pos=1;
-                }
-                
+                } 
             }
             else
             {
