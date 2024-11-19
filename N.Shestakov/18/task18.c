@@ -68,7 +68,8 @@ int main(int argc, char *argv[]) {
     }
 
     // Обрабатываем все аргументы командной строки
-    for (int i = 1; i < argc; i++) {
+    int i;
+    for (i = 1; i < argc; i++) {
         print_file_info(argv[i]);
     }
 
