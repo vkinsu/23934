@@ -3,112 +3,93 @@
 #include <unistd.h>
 #include <termios.h>
 #include <string.h>
-#include <poll.h>
 
-#define MAX_LINE_LENGTH 40
-#define TIMEOUT 5000  // 5 seconds in milliseconds
+#include <stdio.h>
+#include <stdlib.h>
+#include <termios.h>
+#include <unistd.h>
+#include <string.h>
 
-void disable_echo_canonical_mode() {
-    struct termios term;
-    tcgetattr(STDIN_FILENO, &term);
-    term.c_lflag &= ~(ICANON | ECHO);
-    tcsetattr(STDIN_FILENO, TCSANOW, &term);
-}
+#define KIIL_STR "\r\033[K"
+#define ERASE "\b \b"
+#define BEEP "\x07"
 
-void enable_echo_canonical_mode() {
-    struct termios term;
-    tcgetattr(STDIN_FILENO, &term);
-    term.c_lflag |= (ICANON | ECHO);
-    tcsetattr(STDIN_FILENO, TCSANOW, &term);
-}
+int main()
+{
+    char buffer[41];
+    int buffer_index = 0;
+    struct termios oldt, newt;
+    tcgetattr(STDIN_FILENO, &oldt);
+    newt = oldt;
+    newt.c_lflag &= ~(ECHO | ICANON);
+    newt.c_cc[VMIN] = 1;
+    newt.c_cc[VTIME] = 0;
+    int index = 0;
+    tcsetattr(STDIN_FILENO, TCSAFLUSH, &newt);
+    newt.c_cc[VERASE] = 8;   // Backspace
+    newt.c_cc[VWERASE] = 23; // Ctrl+W
+    newt.c_cc[VKILL] = 21;   // Ctrl+U
+    newt.c_cc[VEOF] = 4;     // Ctrl+D
 
-void beep() {
-    putchar('\a');
-    fflush(stdout);
-}
-
-void erase_last_char(char *line, int *cursor) {
-    if (*cursor > 0) {
-        printf("\b \b");
-        fflush(stdout);
-        line[--*cursor] = '\0';
-    }
-}
-
-void kill_line(char *line, int *cursor) {
-    while (*cursor > 0) {
-        printf("\b \b");
-        fflush(stdout);
-        line[--*cursor] = '\0';
-    }
-}
-
-void erase_last_word(char *line, int *cursor) {
-    while (*cursor > 0 && line[*cursor - 1] == ' ') {
-        erase_last_char(line, cursor);
-    }
-    while (*cursor > 0 && line[*cursor - 1] != ' ') {
-        erase_last_char(line, cursor);
-    }
-}
-
-void handle_input(char *line, int *cursor) {
-    struct pollfd fds;
-    fds.fd = STDIN_FILENO;
-    fds.events = POLLIN;
-
-    char ch;
-    while (1) {
-        int ret = poll(&fds, 1, TIMEOUT);
-        if (ret == -1) {
-            perror("poll");
-            break;
-        } else if (ret == 0) {
-            printf("\nTimeout. Exiting...\n");
+    while (1)
+    {
+        char c;
+        read(STDIN_FILENO, &c, 1);
+        if (c == 10)
+        {
+            buffer_index = 0;
+            write(1, &c, 1);
             break;
         }
-
-        if (read(STDIN_FILENO, &ch, 1) > 0) {
-            if (ch == '\x7F') { // ERASE
-                erase_last_char(line, cursor);
-            } else if (ch == '\x15') { // KILL
-                kill_line(line, cursor);
-            } else if (ch == '\x17') { // CTRL-W
-                erase_last_word(line, cursor);
-            } else if (ch == '\x04' && *cursor == 0) { // CTRL-D at the beginning of the line
-                break;
-            } else if (ch == '\x07') { // Beep for unprintable characters
-                beep();
-            } else if (*cursor < MAX_LINE_LENGTH) {
-                if (ch == '\n') {
-                    printf("\n");
-                    fflush(stdout);
-                    line[*cursor] = '\0';
-                    break;
-                } else {
-                    putchar(ch);
-                    fflush(stdout);
-                    line[(*cursor)++] = ch;
-                    line[*cursor] = '\0';
-                }
-            } else {
-                beep();
+        if (c == 4 && buffer_index == 0)
+            break;
+        if (c == 127)
+        {
+            if (buffer_index > 0)
+            {
+                buffer_index--;
+                write(1, ERASE, strlen(ERASE));
+                continue;
             }
         }
+        else if (c == 21)
+        {
+            write(1, KIIL_STR, strlen(KIIL_STR));
+            buffer_index = 0;
+            continue;
+        }
+        else if (c == 23)
+        {
+            while (buffer_index > 0 && buffer[buffer_index - 1] == ' ')
+            {
+                buffer_index--;
+                write(1, ERASE, strlen(ERASE));
+            }
+            while (buffer_index > 0 && buffer[buffer_index - 1] != ' ')
+            {
+                buffer_index--;
+                write(1, ERASE, strlen(ERASE));
+            }
+            continue;
+        }
+        else if (buffer_index < 40 && (c >= 32 && c <= 126))
+        {
+            buffer[buffer_index++] = c;
+            write(1, &c, 1);
+        }
+        else if (c >= 32 && c <= 126)
+        {
+            buffer_index = 0;
+            write(1, "\n", 1);
+            buffer[buffer_index++] = c;
+            write(1, &c, 1);
+        }
+        else
+        {
+            write(1, BEEP, strlen(BEEP));
+            continue;
+        }
     }
-}
-
-int main() {
-    char line[MAX_LINE_LENGTH + 1] = {0};
-    int cursor = 0;
-
-    disable_echo_canonical_mode();
-
-    handle_input(line, &cursor);
-
-    enable_echo_canonical_mode();
-
-    printf("\nFinal line: %s\n", line);
-
+    tcsetattr(STDIN_FILENO, TCSAFLUSH, &oldt);
     return 0;
 }
