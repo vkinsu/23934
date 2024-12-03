@@ -8,6 +8,7 @@
 #include <string.h>
 #include <sys/epoll.h>
 #include <time.h>
+#include <fcntl.h>
 
 #define SOCKET_PATH "./socket"
 #define MAX_CLIENTS 10
@@ -18,6 +19,11 @@ void sigCatch(int sig) {
     _exit(1);
 }
 
+void setNonBlocking(int fd) {
+    int flags = fcntl(fd, F_GETFL, 0);
+    fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+}
+
 int main() {
     char buffer[BUFSIZ];
     int socketFd;
@@ -25,6 +31,8 @@ int main() {
         perror("Socket failed");
         exit(-1);
     }
+
+    setNonBlocking(socketFd);
 
     struct sockaddr_un serverAddr;
     memset(&serverAddr, 0, sizeof(serverAddr));
@@ -86,7 +94,9 @@ int main() {
                     exit(-1);
                 }
 
-                event.events = EPOLLIN;
+                setNonBlocking(clientFd);
+
+                event.events = EPOLLIN | EPOLLET;
                 event.data.fd = clientFd;
                 if (epoll_ctl(epollFd, EPOLL_CTL_ADD, clientFd, &event) == -1) {
                     perror("Epoll ctl add client failed");
