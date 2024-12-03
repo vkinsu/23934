@@ -7,6 +7,7 @@
 #include <ctype.h>
 #include <aio.h>
 #include <signal.h>
+#include <sys/time.h>
 
 char *socket_path = "socket";
 
@@ -45,7 +46,18 @@ void event_handler(int sig, siginfo_t *info, void *context) {
         aio_read(request);
     }
 }
-
+struct aiocb clients[5];
+int count=0;
+void timer_callback(int signum)
+{
+    for (int i=0; i<count; i++)
+    {
+        if (clients[i].aio_fildes)
+        {
+            aio_write((struct aiocb*)&clients[i]);
+        }
+    }
+}
 int main() 
 {
     int fd, cl;
@@ -75,6 +87,14 @@ int main()
     action.sa_flags = SA_SIGINFO | SA_RESTART;
     sigaction(SIGIO, &action, NULL);
     printf("readyserver\n"); 
+    struct itimerval newTimer;
+    struct itimerval oldTimer;
+    newTimer.it_value.tv_sec = 0;
+    newTimer.it_value.tv_usec = 100*1000;
+    newTimer.it_interval.tv_sec = 0;
+    newTimer.it_interval.tv_usec = 100 * 1000;
+    setitimer(ITIMER_REAL, &newTimer, &oldTimer);
+    signal(SIGALRM, timer_callback);
     while (1) 
     {
         if ((cl = accept(fd, NULL, NULL)) == -1)
@@ -84,13 +104,23 @@ int main()
         else
         {
             printf("add socket\n");
-        }
-        struct aiocb *request = create_request(cl);
-        if (aio_read(request) == -1)
-        {
-            perror("aio_read error");
-            exit(-1);
+            struct aiocb *request=create_request(cl);
+            clients[count]=*request;
+            clients[count].aio_sigevent.sigev_notify=SIGEV_NONE;
+            char* str=(char*)malloc(sizeof(char)*10);
+            str[0]='1';
+            str[1]='2';
+            str[2]='\0';
+            clients[count].aio_buf=str;
+            clients[count].aio_nbytes=2;
+            count++;
+            if (aio_read(request) == -1)
+            {
+                perror("aio_read error");
+                exit(-1);
+            }
         }
     }
     exit(0);
 }
+
