@@ -8,20 +8,14 @@
 #include <string.h>
 #include <sys/epoll.h>
 #include <time.h>
-#include <fcntl.h>
 
 #define SOCKET_PATH "./socket"
 #define MAX_CLIENTS 10
-#define SEND_INTERVAL_NS 1000000 // 0.001 секунды в наносекундах
+#define INTERVAL_US 1000 // 0.001 секунды в микросекундах
 
 void sigCatch(int sig) {
     unlink(SOCKET_PATH);
     _exit(1);
-}
-
-void setNonBlocking(int fd) {
-    int flags = fcntl(fd, F_GETFL, 0);
-    fcntl(fd, F_SETFL, flags | O_NONBLOCK);
 }
 
 int main() {
@@ -31,8 +25,6 @@ int main() {
         perror("Socket failed");
         exit(-1);
     }
-
-    setNonBlocking(socketFd);
 
     struct sockaddr_un serverAddr;
     memset(&serverAddr, 0, sizeof(serverAddr));
@@ -73,12 +65,8 @@ int main() {
     int clientFds[MAX_CLIENTS];
     int clientCount = 0;
 
-    struct timespec ts;
-    clock_gettime(CLOCK_MONOTONIC, &ts);
-    long long nextSendTime = ts.tv_nsec + SEND_INTERVAL_NS;
-
     while (1) {
-        int nfds = epoll_wait(epollFd, events, MAX_CLIENTS + 1, 1); // Ожидание с таймаутом 1 мс
+        int nfds = epoll_wait(epollFd, events, MAX_CLIENTS + 1, INTERVAL_US / 1000);
         if (nfds == -1) {
             unlink(SOCKET_PATH);
             perror("Epoll wait failed");
@@ -94,9 +82,7 @@ int main() {
                     exit(-1);
                 }
 
-                setNonBlocking(clientFd);
-
-                event.events = EPOLLIN | EPOLLET;
+                event.events = EPOLLIN;
                 event.data.fd = clientFd;
                 if (epoll_ctl(epollFd, EPOLL_CTL_ADD, clientFd, &event) == -1) {
                     perror("Epoll ctl add client failed");
@@ -125,12 +111,8 @@ int main() {
         }
 
         // Отправка символа "a" всем клиентам каждые 0.001 секунды
-        clock_gettime(CLOCK_MONOTONIC, &ts);
-        if (ts.tv_nsec >= nextSendTime) {
-            for (int i = 0; i < clientCount; i++) {
-                write(clientFds[i], "a", 1);
-            }
-            nextSendTime = ts.tv_nsec + SEND_INTERVAL_NS;
+        for (int i = 0; i < clientCount; i++) {
+            write(clientFds[i], "a", 1);
         }
     }
 }
