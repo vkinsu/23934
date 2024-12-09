@@ -69,10 +69,14 @@ int main() {
                 if (fgets(tempText, sizeof(tempText), stdin) == NULL) {
                     Flag = 0;
                     break;
-                }; // Check for EOF
+                };
                 if (strlen(tempText) > MAX_LENGTH_TEXT - 1) {
                     printf("%sERROR: The entered text is too long! Maximum %d characters.%s\n", red, MAX_LENGTH_TEXT - 1, reset);
                     continue;
+                }
+                size_t len = strlen(tempText);
+                if (len > 0 && tempText[len - 1] == '\n') {
+                    tempText[len - 1] = '\0';
                 }
                 flag = received;
             }
