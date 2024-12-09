@@ -85,7 +85,7 @@ int main() {
         } else {
             read(client_sock, tempText, sizeof(tempText) - 1);
             tempText[strlen(tempText)] = '!';
-            printf("%s\n", tempText);
+            printf("%d\n", strlen(tempText));
             write(client_sock, tempText, strlen(tempText) + 1);
         }
     }
