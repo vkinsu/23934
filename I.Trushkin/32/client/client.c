@@ -74,18 +74,15 @@ int main() {
                     printf("%sERROR: The entered text is too long! Maximum %d characters.%s\n", red, MAX_LENGTH_TEXT - 1, reset);
                     continue;
                 }
-                size_t len = strlen(tempText);
-                if (len > 0 && tempText[len - 1] == '\n') {
-                    tempText[len - 1] = '\0';
-                }
                 flag = received;
             }
             write(client_sock, tempText, strlen(tempText) + 1);
             nanosleep(&ts, NULL);
         } else {
-            read(client_sock, tempText, sizeof(tempText) - 1);
+            read(client_sock, tempText, sizeof(tempText));
             tempText[strlen(tempText)] = '!';
-            tempText[strlen(tempText)+1] = '\0';
+            tempText[strlen(tempText)+1] = '\n';
+            printf("%s", tempText);
             write(client_sock, tempText, strlen(tempText) + 1);
         }
     }
