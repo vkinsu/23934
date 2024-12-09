@@ -58,6 +58,10 @@ int main() {
     numb_client[0] = (char *)malloc(6 * sizeof(char)); // "first" + '\0'
     numb_client[1] = (char *)malloc(7 * sizeof(char)); // "second" + '\0'
 
+    char * idx_client = (char*)malloc((100 * sizeof(char)));
+    char * fd_client = (char*)malloc((2*sizeof(char)));
+
+
     while (1) {
         read_set = active_set;
 
@@ -80,20 +84,37 @@ int main() {
                         }
                     }
                     if (numb_client[0] != NULL) {
+                        idx_client[i] = 0;
+                        fd_client[0] = i;
                         write (i,numb_client[0],strlen(numb_client[0]));
                         numb_client[0] = NULL;
                     }
                     else {
+                        idx_client[i] = 1;
+                        fd_client[1] = i;
                         write (i,numb_client[1],strlen(numb_client[1]));
                     }
                 } else {
-                    ssize_t bytesRead = read(i, text, MAX_LENGTH_TEXT - 1);
-                    if (bytesRead <= 0) {
-                        close(i);
-                        FD_CLR(i, &active_set);
-                    } else {
-                        text[bytesRead] = '\0';
-                        printf("%s%s%s\n", purple, text, reset);
+                    if (idx_client[i] == 0) {
+                        ssize_t bytesRead = read(i, text, MAX_LENGTH_TEXT - 1);
+                        if (bytesRead <= 0) {
+                            close(i);
+                            FD_CLR(i, &active_set);
+                        } else {
+                            text[bytesRead] = '\0';
+                            printf("%s%s%s\n", purple, text, reset);
+                            write (fd_client[1],text,strlen(text));
+                        }
+                    }
+                    else {
+                        ssize_t bytesRead = read(i, text, MAX_LENGTH_TEXT - 1);
+                        if (bytesRead <= 0) {
+                            close(i);
+                            FD_CLR(i, &active_set);
+                        } else {
+                            text[bytesRead] = '\0';
+                            printf("%s%s%s\n", purple, text, reset);
+                        }
                     }
                 }
             }
