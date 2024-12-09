@@ -9,6 +9,7 @@ void mysignal(int var)
 {
     k+=1;
     printf("\a");
+    signal(SIGINT, mysignal);
 }
 void mysignal2(int var)
 {
@@ -17,10 +18,11 @@ void mysignal2(int var)
 }
 int main()
 {
+    signal(SIGINT, mysignal);
+    signal(SIGQUIT, mysignal2);
     while(1)
     {
-	signal(SIGINT, mysignal);
-	signal(SIGQUIT, mysignal2);
+	pause();
     }
     exit(0);
 }

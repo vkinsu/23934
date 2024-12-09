@@ -1,4 +1,4 @@
 all:
 	@gcc main.c -o main
-	@./main top -Unikelau
+	@./main cat text.txt
 	@rm main

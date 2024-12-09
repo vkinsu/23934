@@ -143,7 +143,7 @@ int main(int argc, char *argv[])
             case 'U':
                 errno = 0;
                 long new_ulimit = strtol(optarg, &endptr, 10);
-                if (errno != 0 || *endptr != '\0' || new_ulimit < 0) 
+                if (errno != 0 || *endptr != '\0') 
                 {
                     fprintf(stderr, "Invalid argument for -U: %s\n", optarg);
                 } 

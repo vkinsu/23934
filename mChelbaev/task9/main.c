@@ -8,28 +8,28 @@
 
 int main(int argv, char* argc[]) {
     if (argv == 1) {
-        printf("ERROR: Enter file, which should be cat\n");
+        printf("you need to put filepath in parameters of program\n");
         return 1;
     }
     printf("pid of parent process is: %i\n", getpid());
-    char* args[] = { argc[1], argc[2], NULL }; 
-
+    char* args_to_child[] = { "cat", argc[1], NULL };
     pid_t child_proc, child_dummy;
-    int stat;
+    int status;
 
     child_proc = fork();
     if (child_proc == (pid_t)-1) {
-        printf("error with process creating: %s\n", strerror(stat));
+        printf("error with process creating: %s\n", strerror(status));
         return 1;
     }
     if (!child_proc) {
         printf("process has been created with pid: %i\n", getpid());
-        execvp(argc[1], args);
+        execvp("cat", args_to_child);
         exit(0);
     }
     printf("text in the main process before waiting of child\n");
+    //почему-то программа ожидает какой-то баш команды и не хочет выполнять дальше.
     do {
-        child_dummy = waitpid(child_proc, &stat, 0);
+        child_dummy = waitpid(child_proc, &status, 0);
         if (child_dummy == (pid_t)-1 && errno != EINTR)
             break;
     } while (child_dummy != child_proc);
