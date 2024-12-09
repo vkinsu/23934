@@ -58,12 +58,13 @@ int main(int argc, char *argv[]) {
         exit(-1);
     }
 
-    struct epoll_event events[MAX_EVENTS];
-
-    size_t byteRead;
-    while ((byteRead = read(fdIn, buffer, BUFSIZ)) > 0) {
-        write(socketFd, buffer, byteRead);
+    event.data.fd = fdIn;
+    if (epoll_ctl(epollFd, EPOLL_CTL_ADD, fdIn, &event) == -1) {
+        perror("Epoll ctl add input file failed");
+        exit(-1);
     }
+
+    struct epoll_event events[MAX_EVENTS];
 
     while (1) {
         int nfds = epoll_wait(epollFd, events, MAX_EVENTS, -1);
@@ -74,13 +75,20 @@ int main(int argc, char *argv[]) {
 
         for (int i = 0; i < nfds; i++) {
             if (events[i].data.fd == socketFd) {
+                ssize_t byteRead;
                 while ((byteRead = read(socketFd, buffer, 1)) > 0) {
                     write(STDOUT_FILENO, buffer, byteRead);
+                }
+            } else if (events[i].data.fd == fdIn) {
+                ssize_t byteRead;
+                while ((byteRead = read(fdIn, buffer, BUFSIZ)) > 0) {
+                    write(socketFd, buffer, byteRead);
                 }
             }
         }
     }
 
     close(socketFd);
+    close(fdIn);
     return 0;
 }
