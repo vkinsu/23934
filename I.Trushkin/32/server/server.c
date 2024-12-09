@@ -54,10 +54,10 @@ int main() {
     printf("%sThe server ready to listen%s\n", green, reset);
 
     char **numb_client = (char **)malloc(2 * sizeof(char *));
-    numb_client[0] = (char *)malloc(6 * sizeof(char)); // "first" + '\0'
-    numb_client[1] = (char *)malloc(7 * sizeof(char)); // "second" + '\0'
-    strcpy(numb_client[0], "first");
-    strcpy(numb_client[1], "second");
+    numb_client[0] = (char *)malloc(7 * sizeof(char)); // "first" + '\0'
+    numb_client[1] = (char *)malloc(8 * sizeof(char)); // "second" + '\0'
+    strcpy(numb_client[0], "first\n");
+    strcpy(numb_client[1], "second\n");
 
     int *idx_client = (int *)malloc(100 * sizeof(int));
     int *fd_client = (int *)malloc(2 * sizeof(int));
