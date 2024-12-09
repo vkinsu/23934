@@ -46,8 +46,8 @@ int main() {
 
     // Read the initial message from the server
     read(client_sock, tempText, sizeof(tempText) - 1);
-    printf("%s", tempText);
     tempText[sizeof(tempText) - 1] = '\0'; // Ensure null-termination
+    printf("%s", tempText);
 
     if (strcmp(tempText, "first") == 0) {
         id_client = first;
