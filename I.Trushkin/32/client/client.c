@@ -54,6 +54,10 @@ int main() {
         id_client = second;
     }
 
+    for (int i = 0; i<MAX_LENGTH_TEXT; i++) {
+        tempText[i] = '\0';
+    }
+
     enum isMessage {
         not_received, received
     };
