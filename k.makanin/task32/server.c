@@ -92,6 +92,7 @@ int main() {
                     close(clientFd);
                 } else {
                     clientFds[clientCount++] = clientFd;
+                    printf("Client connected, total clients: %d\n", clientCount);
                 }
             } else {
                 int clientFd = events[i].data.fd;
@@ -105,6 +106,7 @@ int main() {
                             break;
                         }
                     }
+                    printf("Client disconnected, total clients: %d\n", clientCount);
                 } else {
                     for (size_t j = 0; j < bytesRead; j++) {
                         putc(toupper(buffer[j]), stdout);
