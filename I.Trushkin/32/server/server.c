@@ -102,12 +102,7 @@ int main() {
                     if (bytesRead <= 0) {
                         close(i);
                         FD_CLR(i, &active_set);
-                        if (idx_client[i] == 0) {
-                            strcpy(numb_client[0], "first\n");
-                            idx_client[fd_client[1]] = 0;
-                            write(fd_client[1], numb_client[0], strlen(numb_client[0]) + 1);
 
-                        }
                     } else {
                         text[bytesRead] = '\0';
                         printf("%s%s%s\n", color_client[i], text, reset);
