@@ -11,7 +11,7 @@
 
 #define SOCKET_PATH "./socket"
 #define MAX_CLIENTS 10
-#define INTERVAL_US 1000 // 0.001 секунды в микросекундах
+#define INTERVAL_US 1000 
 
 void sigCatch(int sig) {
     unlink(SOCKET_PATH);
