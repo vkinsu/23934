@@ -5,8 +5,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/un.h>
-#include <ctype.h>
-#include <signal.h>
+
 #define MAX_LENGTH_TEXT 40
 
 const char *red = "\033[31m";
@@ -43,7 +42,7 @@ int main() {
         exit(1);
     }
 
-    if (listen(sock, 2) == -1) {
+    if (listen(sock, 3) == -1) {
         printf("%sError: failed to listen socket %s\n", red, reset);
         exit(1);
     }
@@ -57,10 +56,11 @@ int main() {
     char **numb_client = (char **)malloc(2 * sizeof(char *));
     numb_client[0] = (char *)malloc(6 * sizeof(char)); // "first" + '\0'
     numb_client[1] = (char *)malloc(7 * sizeof(char)); // "second" + '\0'
+    strcpy(numb_client[0], "first");
+    strcpy(numb_client[1], "second");
 
-    char * idx_client = (char*)malloc((100 * sizeof(char)));
-    char * fd_client = (char*)malloc((2*sizeof(char)));
-
+    int *idx_client = (int *)malloc(100 * sizeof(int));
+    int *fd_client = (int *)malloc(2 * sizeof(int));
 
     while (1) {
         read_set = active_set;
@@ -84,15 +84,14 @@ int main() {
                         }
                     }
                     if (numb_client[0] != NULL) {
-                        idx_client[i] = 0;
-                        fd_client[0] = i;
-                        write (i,numb_client[0],strlen(numb_client[0]));
+                        idx_client[new_sock] = 0;
+                        fd_client[0] = new_sock;
+                        write(new_sock, numb_client[0], strlen(numb_client[0]) + 1);
                         numb_client[0] = NULL;
-                    }
-                    else {
-                        idx_client[i] = 1;
-                        fd_client[1] = i;
-                        write (i,numb_client[1],strlen(numb_client[1]));
+                    } else {
+                        idx_client[new_sock] = 1;
+                        fd_client[1] = new_sock;
+                        write(new_sock, numb_client[1], strlen(numb_client[1]) + 1);
                     }
                 } else {
                     if (idx_client[i] == 0) {
@@ -103,10 +102,9 @@ int main() {
                         } else {
                             text[bytesRead] = '\0';
                             printf("%s%s%s\n", purple, text, reset);
-                            write (fd_client[1],text,strlen(text));
+                            write(fd_client[1], text, strlen(text) + 1);
                         }
-                    }
-                    else {
+                    } else {
                         ssize_t bytesRead = read(i, text, MAX_LENGTH_TEXT - 1);
                         if (bytesRead <= 0) {
                             close(i);
@@ -120,6 +118,4 @@ int main() {
             }
         }
     }
-    unlink("socket");
-    close(sock);
 }
