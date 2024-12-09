@@ -11,7 +11,7 @@
 
 #define SOCKET_PATH "./socket"
 #define MAX_CLIENTS 10
-#define INTERVAL_US 1000 // 0.001 секунды в микросекундах
+#define INTERVAL_US 1000 
 
 void sigCatch(int sig) {
     unlink(SOCKET_PATH);
@@ -113,7 +113,6 @@ int main() {
             }
         }
 
-        // Отправка символа "a" всем клиентам каждые 0.001 секунды
         struct timespec currentTime;
         clock_gettime(CLOCK_MONOTONIC, &currentTime);
         if ((currentTime.tv_sec - lastSendTime.tv_sec) * 1000000 + (currentTime.tv_nsec - lastSendTime.tv_nsec) / 1000 >= INTERVAL_US) {

@@ -30,7 +30,7 @@ int main(int argc, char *argv[]) {
         size_t byteRead = read(socketFd, buffer, 1);
         if (byteRead > 0) {
             printf("%c", buffer[0]);
-            fflush(stdout); // Очистка буфера вывода для мгновенного вывода
+            fflush(stdout); 
         }
     }
 
