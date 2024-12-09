@@ -46,6 +46,7 @@ int main() {
 
     // Read the initial message from the server
     read(client_sock, tempText, sizeof(tempText) - 1);
+    printf("%s", tempText);
     tempText[sizeof(tempText) - 1] = '\0'; // Ensure null-termination
 
     if (strcmp(tempText, "first") == 0) {
@@ -81,7 +82,7 @@ int main() {
             nanosleep(&ts, NULL);
         } else {
             read(client_sock, tempText, sizeof(tempText) - 1);
-            tempText[sizeof(tempText) - 1] = '\0'; // Ensure null-termination
+            tempText[strlen(tempText) - 1] = '\0';
             tempText[strlen(tempText)] = '!';
             write(client_sock, tempText, strlen(tempText) + 1);
         }
