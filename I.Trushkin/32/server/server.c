@@ -61,6 +61,8 @@ int main() {
 
     int *idx_client = (int *)malloc(100 * sizeof(int));
     int *fd_client = (int *)malloc(2 * sizeof(int));
+    char **color_client = (char**)malloc(100 * sizeof(char*));
+
 
     while (1) {
         read_set = active_set;
@@ -85,12 +87,14 @@ int main() {
                     }
                     if (numb_client[0] != NULL) {
                         idx_client[new_sock] = 0;
+                        color_client[new_sock] = red;
                         fd_client[0] = new_sock;
                         write(new_sock, numb_client[0], strlen(numb_client[0]) + 1);
                         numb_client[0] = NULL;
                     } else {
                         idx_client[new_sock] = 1;
                         fd_client[1] = new_sock;
+                        color_client[new_sock] = yellow;
                         write(new_sock, numb_client[1], strlen(numb_client[1]) + 1);
                     }
                 } else {
@@ -100,7 +104,7 @@ int main() {
                         FD_CLR(i, &active_set);
                     } else {
                         text[bytesRead] = '\0';
-                        printf("%s%s%s\n", purple, text, reset);
+                        printf("%s%s%s\n", color_client[i], text, reset);
                         if (idx_client[i] == 0) {
                             write(fd_client[1], text, strlen(text) + 1);
                         }
