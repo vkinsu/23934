@@ -94,24 +94,15 @@ int main() {
                         write(new_sock, numb_client[1], strlen(numb_client[1]) + 1);
                     }
                 } else {
-                    if (idx_client[i] == 0) {
-                        ssize_t bytesRead = read(i, text, MAX_LENGTH_TEXT - 1);
-                        if (bytesRead <= 0) {
-                            close(i);
-                            FD_CLR(i, &active_set);
-                        } else {
-                            text[bytesRead] = '\0';
-                            printf("%s%s%s\n", purple, text, reset);
-                            write(fd_client[1], text, strlen(text) + 1);
-                        }
+                    ssize_t bytesRead = read(i, text, MAX_LENGTH_TEXT - 1);
+                    if (bytesRead <= 0) {
+                        close(i);
+                        FD_CLR(i, &active_set);
                     } else {
-                        ssize_t bytesRead = read(i, text, MAX_LENGTH_TEXT - 1);
-                        if (bytesRead <= 0) {
-                            close(i);
-                            FD_CLR(i, &active_set);
-                        } else {
-                            text[bytesRead] = '\0';
-                            printf("%s%s%s\n", purple, text, reset);
+                        text[bytesRead] = '\0';
+                        printf("%s%s%s\n", purple, text, reset);
+                        if (idx_client[i] == 0) {
+                            write(fd_client[1], text, strlen(text) + 1);
                         }
                     }
                 }
