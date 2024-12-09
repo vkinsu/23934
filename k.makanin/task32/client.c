@@ -25,12 +25,33 @@ int main(int argc, char *argv[]) {
         exit(-1);
     }
 
-    char buffer[1];
+    char buffer[BUFSIZ];
+    fd_set readFds;
+    int maxFd = socketFd > STDIN_FILENO ? socketFd : STDIN_FILENO;
+
     while (1) {
-        size_t byteRead = read(socketFd, buffer, 1);
-        if (byteRead > 0) {
-            printf("%c", buffer[0]);
-            fflush(stdout); 
+        FD_ZERO(&readFds);
+        FD_SET(socketFd, &readFds);
+        FD_SET(STDIN_FILENO, &readFds);
+
+        int activity = select(maxFd + 1, &readFds, NULL, NULL, NULL);
+        if (activity == -1) {
+            perror("Select failed");
+            exit(-1);
+        }
+
+        if (FD_ISSET(STDIN_FILENO, &readFds)) {
+            size_t bytesRead = read(STDIN_FILENO, buffer, BUFSIZ);
+            if (bytesRead > 0) {
+                write(socketFd, buffer, bytesRead);
+            }
+        }
+
+        if (FD_ISSET(socketFd, &readFds)) {
+            size_t bytesRead = read(socketFd, buffer, BUFSIZ);
+            if (bytesRead > 0) {
+                write(STDOUT_FILENO, buffer, bytesRead);
+            }
         }
     }
 
