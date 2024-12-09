@@ -85,8 +85,8 @@ int main() {
             nanosleep(&ts, NULL);
         } else {
             read(client_sock, tempText, sizeof(tempText) - 1);
-            tempText[strlen(tempText) - 1] = '\0';
-            tempText[strlen(tempText)] = '!';
+            tempText[strlen(tempText)] = '\0';
+            tempText[strlen(tempText)+ 1] = '!';
             write(client_sock, tempText, strlen(tempText) + 1);
         }
     }
