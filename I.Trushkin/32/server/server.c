@@ -58,8 +58,6 @@ int main() {
     numb_client[0] = (char *)malloc(6 * sizeof(char)); // "first" + '\0'
     numb_client[1] = (char *)malloc(7 * sizeof(char)); // "second" + '\0'
 
-    char id_client [][]
-
     while (1) {
         read_set = active_set;
 
