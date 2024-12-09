@@ -65,6 +65,9 @@ int main() {
     int clientFds[MAX_CLIENTS];
     int clientCount = 0;
 
+    struct timespec lastSendTime;
+    clock_gettime(CLOCK_MONOTONIC, &lastSendTime);
+
     while (1) {
         int nfds = epoll_wait(epollFd, events, MAX_CLIENTS + 1, INTERVAL_US / 1000);
         if (nfds == -1) {
@@ -111,8 +114,13 @@ int main() {
         }
 
         // Отправка символа "a" всем клиентам каждые 0.001 секунды
-        for (int i = 0; i < clientCount; i++) {
-            write(clientFds[i], "a", 1);
+        struct timespec currentTime;
+        clock_gettime(CLOCK_MONOTONIC, &currentTime);
+        if ((currentTime.tv_sec - lastSendTime.tv_sec) * 1000000 + (currentTime.tv_nsec - lastSendTime.tv_nsec) / 1000 >= INTERVAL_US) {
+            for (int i = 0; i < clientCount; i++) {
+                write(clientFds[i], "a", 1);
+            }
+            lastSendTime = currentTime;
         }
     }
 }
