@@ -63,11 +63,14 @@ int main() {
     struct timespec ts;
     ts.tv_sec = 0;
     ts.tv_nsec = 500000000; // 0.5 seconds
-
-    while (1) {
+    int Flag = 1;
+    while (Flag) {
         if (id_client == first) {
             if (flag == not_received) {
-                if (fgets(tempText, sizeof(tempText), stdin) == NULL) break; // Check for EOF
+                if (fgets(tempText, sizeof(tempText), stdin) == NULL) {
+                    Flag = 0;
+                    break;
+                }; // Check for EOF
                 if (strlen(tempText) > MAX_LENGTH_TEXT - 1) {
                     printf("%sERROR: The entered text is too long! Maximum %d characters.%s\n", red, MAX_LENGTH_TEXT - 1, reset);
                     continue;
