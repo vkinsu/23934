@@ -12,7 +12,7 @@
 
 #define SOCKET_PATH "./socket"
 #define MAX_CLIENTS 10
-#define SEND_INTERVAL_NS 1000000 
+#define SEND_INTERVAL_NS 1000000 // 0.001 секунды в наносекундах
 
 void sigCatch(int sig) {
     unlink(SOCKET_PATH);
@@ -78,7 +78,7 @@ int main() {
     long long nextSendTime = ts.tv_nsec + SEND_INTERVAL_NS;
 
     while (1) {
-        int nfds = epoll_wait(epollFd, events, MAX_CLIENTS + 1, -1);
+        int nfds = epoll_wait(epollFd, events, MAX_CLIENTS + 1, 1); // Ожидание с таймаутом 1 мс
         if (nfds == -1) {
             unlink(SOCKET_PATH);
             perror("Epoll wait failed");
@@ -124,6 +124,7 @@ int main() {
             }
         }
 
+        // Отправка символа "a" всем клиентам каждые 0.001 секунды
         clock_gettime(CLOCK_MONOTONIC, &ts);
         if (ts.tv_nsec >= nextSendTime) {
             for (int i = 0; i < clientCount; i++) {
