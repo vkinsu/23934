@@ -87,15 +87,15 @@ int main() {
             write(client_sock, tempText, strlen(tempText) + 1);
             nanosleep(&ts, NULL);
         } else {
-            read(client_sock, tempText, sizeof(tempText) - 1);
-            size_t len = strlen(tempText);
-            size_t remaining_space = sizeof(tempText) - len - 1;
-            size_t num_exclamations = remaining_space < 50 ? remaining_space : 50;
-            for (size_t i = 0; i < num_exclamations; i++) {
-                tempText[len + i] = '!';
+            if (fgets(tempText, sizeof(tempText), stdin) == NULL) break;
+            if (strlen(tempText) > MAX_LENGTH_TEXT - 1) {
+                printf("%sERROR: The entered text is too long! Maximum %d characters.%sn", red, MAX_LENGTH_TEXT - 1, reset);
+                continue;
             }
-            tempText[len + num_exclamations] = '\0';
-            printf("%s\n", tempText);
+            size_t len = strlen(tempText);
+            if (len > 0 && tempText[len - 1] == '\n') {
+                tempText[len - 1] = '\0';
+            }
             write(client_sock, tempText, strlen(tempText) + 1);
         }
     }
