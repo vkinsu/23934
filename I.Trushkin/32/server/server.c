@@ -106,9 +106,6 @@ int main() {
                     } else {
                         text[bytesRead] = '\0';
                         printf("%s%s%s\n", color_client[i], text, reset);
-                        if (idx_client[i] == 0) {
-                            write(fd_client[1], text, strlen(text) + 1);
-                        }
                     }
                 }
             }
