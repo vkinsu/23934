@@ -65,7 +65,7 @@ int main() {
 
     struct timespec ts;
     ts.tv_sec = 0;
-    ts.tv_nsec = 500000000; // 0.5 seconds
+    ts.tv_nsec = 100000000; // 0.5 seconds
     int Flag = 1;
     while (Flag) {
         if (id_client == first) {
