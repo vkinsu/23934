@@ -98,7 +98,6 @@ int main() {
             }
             write(client_sock, tempText, strlen(tempText) + 1);
         }
-        close(client_sock);
     }
 
     close(client_sock);
