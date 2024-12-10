@@ -105,7 +105,7 @@ int main() {
 
                     } else {
                         text[bytesRead] = '\0';
-                        printf("%s%s%s\n", color_client[i], text, reset);
+                        printf("%s%s%s", color_client[i], text, reset);
                     }
                 }
             }
