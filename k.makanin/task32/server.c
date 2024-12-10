@@ -7,9 +7,11 @@
 #include <signal.h>
 #include <string.h>
 #include <sys/epoll.h>
+#include <time.h>
 
 #define SOCKET_PATH "./socket"
 #define MAX_CLIENTS 10
+#define INTERVAL_US 1000 
 
 void sigCatch(int sig) {
     unlink(SOCKET_PATH);
@@ -60,9 +62,14 @@ int main() {
     }
 
     struct epoll_event events[MAX_CLIENTS + 1];
+    int clientFds[MAX_CLIENTS];
+    int clientCount = 0;
+
+    struct timespec lastSendTime;
+    clock_gettime(CLOCK_MONOTONIC, &lastSendTime);
 
     while (1) {
-        int nfds = epoll_wait(epollFd, events, MAX_CLIENTS + 1, -1);
+        int nfds = epoll_wait(epollFd, events, MAX_CLIENTS + 1, INTERVAL_US / 1000);
         if (nfds == -1) {
             unlink(SOCKET_PATH);
             perror("Epoll wait failed");
@@ -83,6 +90,9 @@ int main() {
                 if (epoll_ctl(epollFd, EPOLL_CTL_ADD, clientFd, &event) == -1) {
                     perror("Epoll ctl add client failed");
                     close(clientFd);
+                } else {
+                    clientFds[clientCount++] = clientFd;
+                    printf("Client connected, total clients: %d\n", clientCount);
                 }
             } else {
                 int clientFd = events[i].data.fd;
@@ -90,12 +100,28 @@ int main() {
                 if (bytesRead <= 0) {
                     close(clientFd);
                     epoll_ctl(epollFd, EPOLL_CTL_DEL, clientFd, NULL);
+                    for (int j = 0; j < clientCount; j++) {
+                        if (clientFds[j] == clientFd) {
+                            clientFds[j] = clientFds[--clientCount];
+                            break;
+                        }
+                    }
+                    printf("Client disconnected, total clients: %d\n", clientCount);
                 } else {
                     for (size_t j = 0; j < bytesRead; j++) {
                         putc(toupper(buffer[j]), stdout);
                     }
                 }
             }
+        }
+
+        struct timespec currentTime;
+        clock_gettime(CLOCK_MONOTONIC, &currentTime);
+        if ((currentTime.tv_sec - lastSendTime.tv_sec) * 1000000 + (currentTime.tv_nsec - lastSendTime.tv_nsec) / 1000 >= INTERVAL_US) {
+            for (int i = 0; i < clientCount; i++) {
+                write(clientFds[i], "a", 1);
+            }
+            lastSendTime = currentTime;
         }
     }
 }
