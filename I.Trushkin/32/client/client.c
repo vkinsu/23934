@@ -8,7 +8,7 @@
 #include <ctype.h>
 #include <time.h>
 
-#define MAX_LENGTH_TEXT 40
+#define MAX_LENGTH_TEXT 80
 
 const char *red = "\033[31m";
 const char *reset = "\033[0m";
@@ -88,7 +88,13 @@ int main() {
             nanosleep(&ts, NULL);
         } else {
             read(client_sock, tempText, sizeof(tempText) - 1);
-            tempText[strlen(tempText)] = '!';
+            size_t len = strlen(tempText);
+            size_t remaining_space = sizeof(tempText) - len - 1;
+            size_t num_exclamations = remaining_space < 50 ? remaining_space : 50;
+            for (size_t i = 0; i < num_exclamations; i++) {
+                tempText[len + i] = '!';
+            }
+            tempText[len + num_exclamations] = '\0';
             printf("%s\n", tempText);
             write(client_sock, tempText, strlen(tempText) + 1);
         }
