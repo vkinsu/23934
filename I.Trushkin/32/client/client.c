@@ -87,7 +87,7 @@ int main() {
             for (int i = 0; i<strlen(tempText) + 1; i++){
                  write(client_sock, (void*)tempText[i], 1);
             }
-            write(client_sock, tempText, strlen(tempText) + 1);
+
             nanosleep(&ts, NULL);
         } else {
             if (fgets(tempText, sizeof(tempText), stdin) == NULL) break;
@@ -99,7 +99,9 @@ int main() {
             if (len > 0 && tempText[len - 1] == '\n') {
                 tempText[len - 1] = '\0';
             }
-            write(client_sock, tempText, strlen(tempText) + 1);
+            for (int i = 0; i<strlen(tempText) + 1; i++){
+                write(client_sock, (void*)tempText[i], 1);
+            }
         }
     }
 
