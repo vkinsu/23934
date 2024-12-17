@@ -48,7 +48,10 @@ int main()
     {
         close(pipefd[0]);
 
-        const char *text = "Hello, World! This is a Test String.\n";
+        // const char *text = "Hello, World! This is a Test String.\n";
+        char text[64];
+
+        scanf("%s", text);
         write(pipefd[1], text, strlen(text));
 
         close(pipefd[1]);

@@ -77,7 +77,7 @@ int main()
     {
         int ch = getchar();
 
-        if (ch == CTRL_D && length == 0)
+        if (ch == CTRL_D)
         {
             break;
         }
