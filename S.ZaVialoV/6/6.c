@@ -32,6 +32,11 @@ int main(){
     }
     arr[--n] = 0;
     
+    if(close(in) == -1){
+        perror("close (analysis)");
+        exit(0);
+    }
+    
     int num;
     signal(SIGALRM, func);
     printf("Enter the line number.\n");
@@ -43,6 +48,12 @@ int main(){
     }
     
     if(num > 0 && num <= n){
+        in = open("test.txt", O_RDONLY);
+        if(in == -1){
+            perror("open (searching)");
+            exit(0);
+        }
+        
         if(lseek(in, arr[num-1], 0) == -1){
             perror("lseek");
             exit(0);
