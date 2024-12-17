@@ -28,7 +28,7 @@ int main() {
     strncpy(server_addr.sun_path, SOCKET_PATH, sizeof(server_addr.sun_path) - 1);
 
     // Привязка сокета к адресу
-    unlink(SOCKET_PATH); 
+    unlink(SOCKET_PATH); // Удаление старого сокета, если он существует
     if (bind(server_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
         perror("bind");
         exit(EXIT_FAILURE);
@@ -40,7 +40,7 @@ int main() {
         exit(EXIT_FAILURE);
     }
 
-    printf("The server is running, waiting for a connection...\n");
+    printf("Сервер запущен, ожидает соединения...\n");
 
     client_len = sizeof(client_addr);
     // Ожидание подключения клиента
@@ -52,19 +52,21 @@ int main() {
     // Чтение данных от клиента
     while (1) {
         ssize_t nbytes = read(client_fd, buffer, sizeof(buffer) - 1);
-        if (nbytes <= 0) break;
+        if (nbytes <= 0) break; // Прерываем, если произошла ошибка или соединение разорвано
 
-        buffer[nbytes] = '\0';
-      
+        buffer[nbytes] = '\0'; // Завершение строки
+        // Преобразование в верхний регистр
         for (int i = 0; i < nbytes; i++) {
             buffer[i] = toupper(buffer[i]);
         }
 
-        printf("Received from the client: %s\n", buffer);
+        // Выводим полученные данные
+        printf("Получено от клиента: %s\n", buffer);
     }
 
+    // Закрытие сокетов
     close(client_fd);
     close(server_fd);
-    unlink(SOCKET_PATH); 
+    unlink(SOCKET_PATH); // Удаляем сокет
     return 0;
 }

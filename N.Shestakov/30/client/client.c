@@ -30,19 +30,21 @@ int main() {
         exit(EXIT_FAILURE);
     }
 
-    printf("Enter the text to send (enter 'exit' to complete):\n");
+    printf("Введите текст для отправки (введите 'exit' для завершения):\n");
     while (1) {
         fgets(buffer, sizeof(buffer), stdin);
+        // Удаление символа новой строки
         buffer[strcspn(buffer, "\n")] = '\0';
 
         if (strcmp(buffer, "exit") == 0) {
-            break;
+            break; // Завершение связи
         }
 
         // Отправка данных серверу
         write(client_fd, buffer, strlen(buffer));
     }
 
+    // Закрытие сокета
     close(client_fd);
     return 0;
 }
