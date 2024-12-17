@@ -89,7 +89,7 @@ int main()
                         perror("accept");
                         continue;
                     }
-                    printf("New client connected: ID%d\n", client_fd);
+                    printf("New client connected: ID%d\n", client_fd - 4);
                     FD_SET(client_fd, &active_fds);
                     if (client_fd > max_fd)
                     {
