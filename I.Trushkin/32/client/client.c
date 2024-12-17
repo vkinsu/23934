@@ -1,111 +1,68 @@
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <netinet/in.h>
 #include <sys/un.h>
-#include <ctype.h>
-#include <time.h>
 
-#define MAX_LENGTH_TEXT 80
+#define SOCKET_PATH "./unix_domain_socket"
+#define BUFFER_SIZE 256
 
-const char *red = "\033[31m";
-const char *reset = "\033[0m";
-const char *green = "\033[32m";
-const char *purple = "\033[35m";
-const char *yellow = "\033[33m";
+int main(int argc, char* argv[]) {
+    char *filename = argv[1];
+    int delay = atoi(argv[2]);
+    
+    FILE *fp = fopen(filename, "r");
+    if (fp == NULL) {
+  	perror("\nxxxx fopen xxxx\n");
+  	exit(-1);
+    } else printf("fopen ok\n");
 
-int main() {
-    int client_sock = socket(AF_UNIX, SOCK_STREAM, 0);
-
-    if (client_sock == -1) {
-        printf("%sError: failed to create socket%s\n", red, reset);
-        exit(1);
+    int client_socket = socket(AF_UNIX, SOCK_STREAM, 0);
+    if (client_socket == -1) {
+        perror("\nxxxx socket xxxx\n");
+        exit(-1);
     }
 
-    printf("%sThe client is ready to connect%s\n", green, yellow);
+    // define the server address
+    struct sockaddr_un server_address;
+    memset(&server_address, 0, sizeof(server_address));
+    server_address.sun_family = AF_UNIX;
+    strncpy(server_address.sun_path, SOCKET_PATH, sizeof(server_address.sun_path));
+    // server_address.sun_port = htons(PORT);
+    // server_address.sun_addr.s_addr = INADDR_ANY;
 
-    struct sockaddr_un addr;
-    addr.sun_family = AF_UNIX;
-    strncpy(addr.sun_path, "../server/socket", sizeof(addr.sun_path) - 1);
-    addr.sun_path[sizeof(addr.sun_path) - 1] = '\0'; // Ensure null-termination
-
-    if (connect(client_sock, (struct sockaddr *)&addr, sizeof(addr)) == -1) {
-        printf("%sError: failed to connect to server%s\n", red, reset);
-        close(client_sock);
-        exit(1);
+    int connect_socket = connect(client_socket, (struct sockaddr *)&server_address, sizeof(server_address));
+    if (connect_socket == -1) {
+        perror("\nxxxx connect xxxx\n");
+	close(client_socket);
+        exit(-1);
     }
 
-    enum numbCklient {
-        first, second
-    };
-    enum numbCklient id_client;
+   char buffer[BUFFER_SIZE];
 
-    char tempText[MAX_LENGTH_TEXT];
-
-    // Read the initial message from the server
-    read(client_sock, tempText, sizeof(tempText) - 1);
-    printf("%s%s", tempText, reset);
-
-    if (strcmp(tempText, "first\n") == 0) {
-        id_client = first;
-    } else {
-        id_client = second;
+    while (1) {
+	if (fgets(buffer, BUFFER_SIZE, fp) != NULL) {
+	    int write_message = write(client_socket, buffer, strlen(buffer));
+	    if (write_message == -1) {
+		perror("\nxxxx wirte xxxx\n");
+		close(client_socket);
+		fclose(fp);
+		exit(-1);
+	    }
+	}
+	
+	if (feof(fp)) {
+	   rewind(fp);
+	}
+	
+	usleep(delay);
     }
 
-    for (int i = 0; i<MAX_LENGTH_TEXT; i++) {
-        tempText[i] = '\0';
-    }
+    fclose(fp);
+    close(client_socket);
 
-    enum isMessage {
-        not_received, received
-    };
-    enum isMessage flag = not_received;
-
-    struct timespec ts;
-    ts.tv_sec = 0;
-    ts.tv_nsec = 100000000; // 0.5 seconds
-    int Flag = 1;
-    while (Flag) {
-        if (id_client == first) {
-            if (flag == not_received) {
-                if (fgets(tempText, sizeof(tempText), stdin) == NULL) {
-                    Flag = 0;
-                    break;
-                };
-                if (strlen(tempText) > MAX_LENGTH_TEXT - 1) {
-                    printf("%sERROR: The entered text is too long! Maximum %d characters.%s\n", red, MAX_LENGTH_TEXT - 1, reset);
-                    continue;
-                }
-                size_t len = strlen(tempText);
-                if (len > 0 && tempText[len - 1] == '\n') {
-                    tempText[len - 1] = '\0';
-                }
-                flag = received;
-            }
-            for (int i = 0; i<strlen(tempText) + 1; i++){
-                 write(client_sock, &tempText[i], 1);
-            }
-
-            nanosleep(&ts, NULL);
-        } else {
-            if (fgets(tempText, sizeof(tempText), stdin) == NULL) break;
-            if (strlen(tempText) > MAX_LENGTH_TEXT - 1) {
-                printf("%sERROR: The entered text is too long! Maximum %d characters.%sn", red, MAX_LENGTH_TEXT - 1, reset);
-                continue;
-            }
-            size_t len = strlen(tempText);
-            if (len > 0 && tempText[len - 1] == '\n') {
-                tempText[len - 1] = '\0';
-            }
-            for (int i = 0; i<strlen(tempText) + 1; i++){
-
-                write(client_sock, &tempText[i], 1);
-            }
-        }
-    }
-
-    close(client_sock);
     return 0;
 }

@@ -1,114 +1,105 @@
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <netinet/in.h>
 #include <sys/un.h>
+#include <ctype.h>
+#include <pthread.h>
 
-#define MAX_LENGTH_TEXT 40
+#define SOCKET_PATH "./unix_domain_socket"
+#define BUFFER_SIZE 256
 
-const char *red = "\033[31m";
-const char *reset = "\033[0m";
-const char *green = "\033[32m";
-const char *purple = "\033[35m";
-const char *yellow = "\033[33m";
+void to_uppercase(char *str) {
+    while (*str) {
+        *str = toupper((unsigned char)*str);
+        str++;
+    }
+}
+
+void *handle_client(void *arg) {
+    int client_socket = *(int *)arg;
+    char buffer[BUFFER_SIZE];
+    ssize_t read_message;
+ 
+    while ((read_message = read(client_socket, buffer, sizeof(buffer) - 1)) > 0) {
+        buffer[read_message] = '\0';
+	to_uppercase(buffer);
+	printf("%s", buffer);
+    }
+
+    if (read_message == -1) {
+        perror("\nxxxx read xxxx\n");
+    } else if (read_message == 0) {
+	printf("client%d disconnected", client_socket);
+    }
+
+    close(client_socket);
+    free(arg);
+    return NULL;
+}
 
 int main() {
-    unlink("socket");
+    // create the server socket
+    int server_socket = socket(AF_UNIX, SOCK_STREAM, 0);
+    if (server_socket == -1) {
+        perror("\nxxxx socket xxxx\n");
+        exit(-1);
+    }
+    
+    unlink(SOCKET_PATH);
 
-    int sock = socket(AF_UNIX, SOCK_STREAM, 0);
-    int new_sock;
+    // define the server address
+    struct sockaddr_un server_address;
+    server_address.sun_family = AF_UNIX;
+    strncpy(server_address.sun_path, SOCKET_PATH, sizeof(server_address.sun_path) - 1);
+    // server_address.sun_port = htons(PORT);
+    // server_address.sun_addr.s_addr = INADDR_ANY;
 
-    struct sockaddr_un addr;
-    struct sockaddr_un client_addr;
-
-    char text[MAX_LENGTH_TEXT];
-
-    fd_set active_set, read_set;
-
-    int size;
-
-    if (sock == -1) {
-        printf("%sError: failed to create socket %s\n", red, reset);
-        exit(1);
+    // bind the socket to our specified IP and port
+    int bind_socket = bind(server_socket, (struct sockaddr*) &server_address, sizeof(server_address));
+    if (bind_socket == -1) {
+        perror("\nxxxx server bind xxxx\n");
+        exit(-1);
     }
 
-    addr.sun_family = AF_UNIX;
-    strncpy(addr.sun_path, "socket", sizeof(addr.sun_path) - 1);
-
-    if (bind(sock, (struct sockaddr *) &addr, sizeof(addr)) == -1) {
-        printf("%sError: failed to set socket address %s\n", red, reset);
-        exit(1);
+    // listen the socket
+    int listen_socket = listen(server_socket, 5);
+    if (listen_socket == -1) {
+        perror("\nxxxx listen xxxx\n");
+        exit(-1);
     }
 
-    if (listen(sock, 3) == -1) {
-        printf("%sError: failed to listen socket %s\n", red, reset);
-        exit(1);
-    }
-
-    FD_ZERO(&active_set);
-    FD_SET(sock, &active_set);
-    int max_fd = sock;
-
-    printf("%sThe server ready to listen%s\n", green, reset);
-
-    char **numb_client = (char **)malloc(2 * sizeof(char *));
-    numb_client[0] = (char *)malloc(7 * sizeof(char)); // "first" + '\0'
-    numb_client[1] = (char *)malloc(8 * sizeof(char)); // "second" + '\0'
-    strcpy(numb_client[0], "first\n");
-    strcpy(numb_client[1], "second\n");
-
-    int *idx_client = (int *)malloc(100 * sizeof(int));
-    int *fd_client = (int *)malloc(2 * sizeof(int));
-    char **color_client = (char**)malloc(100 * sizeof(char*));
-
+    int client_socket;
+    struct sockaddr_un client_address;
+    socklen_t client_len;
+    pthread_t client_thread;
 
     while (1) {
-        read_set = active_set;
-
-        if (select(max_fd + 1, &read_set, NULL, NULL, NULL) < 0) {
-            printf("%sError: failed to select failure %s\n", red, reset);
-            exit(1);
+        client_len = sizeof(client_address);
+        client_socket = accept(server_socket, (struct sockaddr *)&client_address, &client_len);
+        if (client_socket == -1) {
+	    perror("\nxxxx accept xxxx\n");
+	    continue;
         }
-
-        for (int i = 0; i <= max_fd; i++) {
-            if (FD_ISSET(i, &read_set)) {
-                if (i == sock) {
-                    new_sock = accept(sock, NULL, NULL);
-                    if (new_sock == -1) {
-                        printf("%sError: failed to accept %s\n", red, reset);
-                        exit(1);
-                    } else {
-                        FD_SET(new_sock, &active_set);
-                        if (new_sock > max_fd) {
-                            max_fd = new_sock;
-                        }
-                    }
-                    if (numb_client[0] != NULL) {
-                        idx_client[new_sock] = 0;
-                        color_client[new_sock] = red;
-                        fd_client[0] = new_sock;
-                        write(new_sock, numb_client[0], strlen(numb_client[0]) + 1);
-                        numb_client[0] = NULL;
-                    } else {
-                        idx_client[new_sock] = 1;
-                        fd_client[1] = new_sock;
-                        color_client[new_sock] = yellow;
-                        write(new_sock, numb_client[1], strlen(numb_client[1]) + 1);
-                    }
-                } else {
-                    ssize_t bytesRead = read(i, text, MAX_LENGTH_TEXT - 1);
-                    if (bytesRead <= 0) {
-                        close(i);
-                        FD_CLR(i, &active_set);
-
-                    } else {
-                        text[bytesRead] = '\0';
-                        printf("%s%s%s", color_client[i], text, reset);
-                    }
-                }
-            }
-        }
+	// printf("new socket connected\n");
+	int *client_socket_ptr = malloc(sizeof(int));
+	*client_socket_ptr = client_socket;
+	
+	int pthread_creation = pthread_create(&client_thread, NULL, handle_client, client_socket_ptr); 
+	if (pthread_creation != 0) {
+	    perror("\nxxxx pthread create xxxx\n");
+	    close(client_socket);
+	    free(client_socket_ptr);
+	} else {
+	    pthread_detach(client_thread);
+	}
     }
+   
+
+    close(server_socket);
+    unlink(SOCKET_PATH);
+    return 0;
 }
