@@ -8,18 +8,7 @@
 
 #define SOCKET_PATH "./socket"
 
-
 int main(int argc, char *argv[]) {
-    int fdIn = 0;
-    if (argc == 2) {
-        if ((fdIn = open(argv[1], O_RDONLY)) == -1) {
-            perror("Open faieled");
-            exit(-1);
-        }
-    }
-
-
-    char buffer[BUFSIZ];
     int socketFd;
     if ((socketFd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
         perror("Socket failed");
@@ -36,9 +25,34 @@ int main(int argc, char *argv[]) {
         exit(-1);
     }
 
-    size_t byteRead;
-    while ((byteRead = read(fdIn, buffer, BUFSIZ)) > 0) {
-        write(socketFd, buffer, byteRead);
+    char buffer[BUFSIZ];
+    fd_set readFds;
+    int maxFd = socketFd > STDIN_FILENO ? socketFd : STDIN_FILENO;
+
+    while (1) {
+        FD_ZERO(&readFds);
+        FD_SET(socketFd, &readFds);
+        FD_SET(STDIN_FILENO, &readFds);
+
+        int activity = select(maxFd + 1, &readFds, NULL, NULL, NULL);
+        if (activity == -1) {
+            perror("Select failed");
+            exit(-1);
+        }
+
+        if (FD_ISSET(STDIN_FILENO, &readFds)) {
+            size_t bytesRead = read(STDIN_FILENO, buffer, BUFSIZ);
+            if (bytesRead > 0) {
+                write(socketFd, buffer, bytesRead);
+            }
+        }
+
+        if (FD_ISSET(socketFd, &readFds)) {
+            size_t bytesRead = read(socketFd, buffer, BUFSIZ);
+            if (bytesRead > 0) {
+                write(STDOUT_FILENO, buffer, bytesRead);
+            }
+        }
     }
 
     return 0;
